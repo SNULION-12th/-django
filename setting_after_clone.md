@@ -30,3 +30,5 @@ swagger 사용 예시는 다음과 같습니다. 각 view method 위에 swagger 
 * responses : 가능한 response들을 dictionary 형태로 넣어줍니다. 만약 특정 데이터가 list로 출력된다면 PostSerializer(many=ture)와 같은 형태로 사용 가능합니다.
 
 ### 궁금한 점은 minhouu에게 질문해주세요
+
+### .env 파일에 들어갈 secret key는 백엔드 팀 톡방 공지에 올라가있씁니다~
