@@ -44,21 +44,26 @@ class PostListView(APIView):
         title = request.data.get('title')
         content = request.data.get('content')
         tag_contents = request.data.get("tags")
-        author = User.objects.get(username=request.user.username)
-        
+        author = User.objects.get(username=request.data.get('username'))
+
         if not author:
             return Response({"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if author.password != request.data.get('password'):
+            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
         
         if not title or not content:
             return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
         
-        for tag_content in tag_contents:
-            if not Tag.objects.filter(content=tag_content).exists():
-                post.tags.create(content=tag_content)
-            else:
-                post.tags.add(Tag.objects.get(content=tag_content))
-            
         post = Post.objects.create(title=title, content=content, author=author)
+        
+        if tag_contents is not None:
+            for tag_content in tag_contents:
+                if not Tag.objects.filter(content=tag_content).exists():
+                    post.tags.create(content=tag_content)
+                else:
+                    post.tags.add(Tag.objects.get(content=tag_content))
+            
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -86,6 +91,15 @@ class PostDetailView(APIView):
             post = Post.objects.get(id=post_id)
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        author = User.objects.get(username=request.data.get('username'))
+        
+        if author.password != request.data.get('password'):
+            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if post.author != author:
+            return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
+        
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -104,6 +118,15 @@ class PostDetailView(APIView):
         content = request.data.get('content')
         if not title or not content:
             return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        author = User.objects.get(username=request.data.get('username'))
+        
+        if author.password != request.data.get('password'):
+            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if post.author != author:
+            return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
+        
         post.title = title
         post.content = content
         post.save()
@@ -128,18 +151,23 @@ class LikeView(APIView):
         
         ### 2 ###
         try:
-            user = User.objects.get(username = request.user.username)
+            author = User.objects.get(username=request.data.get('username'))
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
+        if author.password != request.data.get('password'):
+            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+        
         ### 3 ###
-        like_list = post.like_set.filter(user=user)
+        like_list = post.like_set.filter(user=author)
 
         ### 4 ###
         if like_list.count() > 0:
-            post.like_set.get(user=user).delete()
+            post.like_set.get(user=author).delete()
+            print("좋아요 취소")
         else:
-            Like.objects.create(user=user, post=post)
+            Like.objects.create(user=author, post=post)
+            print("좋아요 누름")
 
         serializer = PostSerializer(instance=post)
         return Response(serializer.data, status=status.HTTP_200_OK)

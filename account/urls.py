@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import SignupView
+from .views import AccountView
 
  
 app_name = 'account'
 urlpatterns = [
     # CBV url path
-    path("signup/", SignupView.as_view()),
+    path("signup/", AccountView.as_view()),
 ]
