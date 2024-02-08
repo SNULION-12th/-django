@@ -3,7 +3,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from .models import Post
+from .models import Post, Like, User
+from tag.models import Tag
 from .serializers import PostSerializer
 from drf_yasg.utils import swagger_auto_schema
 
@@ -42,9 +43,22 @@ class PostListView(APIView):
     def post(self, request):
         title = request.data.get('title')
         content = request.data.get('content')
+        tag_contents = request.data.get("tags")
+        author = User.objects.get(username=request.user.username)
+        
+        if not author:
+            return Response({"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND)
+        
         if not title or not content:
             return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
-        post = Post.objects.create(title=title, content=content)
+        
+        for tag_content in tag_contents:
+            if not Tag.objects.filter(content=tag_content).exists():
+                post.tags.create(content=tag_content)
+            else:
+                post.tags.add(Tag.objects.get(content=tag_content))
+            
+        post = Post.objects.create(title=title, content=content, author=author)
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -94,4 +108,38 @@ class PostDetailView(APIView):
         post.content = content
         post.save()
         serializer = PostSerializer(post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LikeView(APIView):
+    @swagger_auto_schema(
+            operation_id='좋아요 토글',
+            operation_description='좋아요를 토글합니다. 이미 좋아요가 눌려있으면 취소합니다.',
+            request_body=PostSerializer,
+            responses={200: PostSerializer, 404: 'Not Found'}
+        )
+    def post(self, request, post_id):
+
+        ### 1 ###
+        try:
+            post = Post.objects.get(id=post_id)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        ### 2 ###
+        try:
+            user = User.objects.get(username = request.user.username)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        ### 3 ###
+        like_list = post.like_set.filter(user=user)
+
+        ### 4 ###
+        if like_list.count() > 0:
+            post.like_set.get(user=user).delete()
+        else:
+            Like.objects.create(user=user, post=post)
+
+        serializer = PostSerializer(instance=post)
         return Response(serializer.data, status=status.HTTP_200_OK)
