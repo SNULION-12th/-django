@@ -3,11 +3,18 @@ from django.contrib import auth
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
 
 from .serializers import UserIdUsernameSerializer, UserSerializer, UserProfileSerializer
 from .models import UserProfile
 
 class AccountView(APIView):
+    @swagger_auto_schema(
+        operation_id='회원가입',
+        operation_description='회원가입을 진행합니다.',
+        request_body=UserSerializer,
+        responses={201: UserProfileSerializer}
+    )
     def post(self, request):
         college=request.data.get('college')
         major=request.data.get('major')
@@ -21,15 +28,23 @@ class AccountView(APIView):
             college=college,
             major=major
         ) 
-        user_profile_serializer = UserProfileSerializer(user_profile)
-        res = Response(user_profile_serializer.data, status=status.HTTP_200_OK)
-        return res
+        user_profile_serializer = UserProfileSerializer(instance = user_profile)
+        return Response(user_profile_serializer.data, status=status.HTTP_201_CREATED)
     
+    @swagger_auto_schema(
+        operation_id='로그인',
+        operation_description='로그인을 진행합니다.',
+        request_body=UserSerializer,
+        responses={200: UserSerializer}
+    )
     def get(self, request):
-        user = User.objects.get(username = request.data.get('username'))
-        if user is None:
-            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        if request.data.get('password') != user.password:
-            return Response({"message": "Password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-        user_serializer = UserSerializer(user)
-        return Response(user_serializer.data, status=status.HTTP_200_OK)
+        try:
+            user = User.objects.get(username=request.data.get('username'))
+            if not user.check_password(request.data.get('password')):
+                return Response({"message": "Password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+            user_serializer = UserSerializer(instance = user)
+            return Response(user_serializer.data, status=status.HTTP_200_OK)
+        
+        except User.DoesNotExist:
+            return Response({"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        

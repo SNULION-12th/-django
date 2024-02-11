@@ -6,4 +6,5 @@ from .models import Comment
 class CommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
-        fields = "__all__"
+        fields = ["post","content","author","created_at"]
+        exatra_kwargs = {"post":{"required":True},"content":{"required":True}}

@@ -78,7 +78,7 @@ class PostDetailView(APIView):
             post = Post.objects.get(id=post_id)
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = PostSerializer(post)
+        serializer = PostSerializer(instance = post)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
     @swagger_auto_schema(
@@ -130,7 +130,7 @@ class PostDetailView(APIView):
         post.title = title
         post.content = content
         post.save()
-        serializer = PostSerializer(post)
+        serializer = PostSerializer(instance = post)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
