@@ -12,13 +12,16 @@ class AccountView(APIView):
     @swagger_auto_schema(
         operation_id='회원가입',
         operation_description='회원가입을 진행합니다.',
-        request_body=UserSerializer,
+        request_body=UserProfileSerializer,
         responses={201: UserProfileSerializer}
     )
     def post(self, request):
         college=request.data.get('college')
         major=request.data.get('major')
-
+        
+        if not college or not major:
+            return Response({"message": "missing fields ['college', 'major']"}, status=status.HTTP_400_BAD_REQUEST)
+        
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid(raise_exception=True):
             user = user_serializer.save()
