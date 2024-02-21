@@ -45,13 +45,13 @@ class TagDetailView(APIView):
   @swagger_auto_schema(
     operation_id='태그 삭제',
     operation_description='태그를 삭제합니다.',
-    responses={204: "No Content"}
+    responses={204: "No Content", 200: PostSerializer(many=True)}
   )
   def get(self, request, tag_id):
     try:
       Tag.objects.get(id=tag_id)
     except:
-      return Response({"detail": "Provided tag does not exist."})
+      return Response({"detail": "Provided tag does not exist."}, status=status.HTTP_204_NO_CONTENT)
     
     posts = Post.objects.filter(tags=tag_id)
     serializer = PostSerializer(instance=posts, many=True)

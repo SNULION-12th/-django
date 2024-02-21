@@ -38,24 +38,22 @@ class PostListView(APIView):
             operation_id='게시글 생성',
             operation_description='게시글을 생성합니다.',
             request_body=PostSerializer,
-            responses={201: PostSerializer}
+            responses={201: PostSerializer, 404: 'Not Found', 400: 'Bad Request'}
         )
     def post(self, request):
         title = request.data.get('title')
         content = request.data.get('content')
         tag_contents = request.data.get("tags")
-        author = User.objects.get(username=request.data.get('username'))
-
-        if not author:
-            return Response({"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if author.password != request.data.get('password'):
-            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if not title or not content:
-            return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        post = Post.objects.create(title=title, content=content, author=author)
+        try:
+            author = User.objects.get(username=request.data.get('username'))
+            if not author.check_password(request.data.get('password')):
+                return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+            if not title or not content:
+                return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+            post = Post.objects.create(title=title, content=content, author=author)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
         if tag_contents is not None:
             for tag_content in tag_contents:
@@ -84,7 +82,7 @@ class PostDetailView(APIView):
     @swagger_auto_schema(
             operation_id='게시글 삭제',
             operation_description='게시글을 삭제합니다.',
-            responses={204: 'No Content', 404: 'Not Found'}
+            responses={204: 'No Content', 404: 'Not Found', 400: 'Bad Request'}
         )
     def delete(self, request, post_id):
         try:
@@ -92,13 +90,14 @@ class PostDetailView(APIView):
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        author = User.objects.get(username=request.data.get('username'))
-        
-        if author.password != request.data.get('password'):
-            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if post.author != author:
-            return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            author = User.objects.get(username=request.data.get('username'))
+            if not author.check_password(request.data.get('password')):
+                return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+            if post.author != author:
+                return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -114,19 +113,19 @@ class PostDetailView(APIView):
             post = Post.objects.get(id=post_id)
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            author = User.objects.get(username=request.data.get('username'))
+            if not author.check_password(request.data.get('password')):
+                return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+            if post.author != author:
+                return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
         title = request.data.get('title')
         content = request.data.get('content')
         if not title or not content:
             return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        author = User.objects.get(username=request.data.get('username'))
-        
-        if author.password != request.data.get('password'):
-            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if post.author != author:
-            return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
-        
         post.title = title
         post.content = content
         post.save()
@@ -138,8 +137,8 @@ class LikeView(APIView):
     @swagger_auto_schema(
             operation_id='좋아요 토글',
             operation_description='좋아요를 토글합니다. 이미 좋아요가 눌려있으면 취소합니다.',
-            request_body=PostSerializer,
-            responses={200: PostSerializer, 404: 'Not Found'}
+            request_body={"username": "string", "password": "string"},
+            responses={200: PostSerializer, 404: 'Not Found', 400: 'Bad Request'}
         )
     def post(self, request, post_id):
 
@@ -152,11 +151,10 @@ class LikeView(APIView):
         ### 2 ###
         try:
             author = User.objects.get(username=request.data.get('username'))
+            if not author.check_password(request.data.get('password')):
+                return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        if author.password != request.data.get('password'):
-            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
         
         ### 3 ###
         like_list = post.like_set.filter(user=author)
