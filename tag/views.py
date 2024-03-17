@@ -43,9 +43,9 @@ class TagListView(APIView):
 class TagDetailView(APIView):
   
   @swagger_auto_schema(
-    operation_id='태그 삭제',
-    operation_description='태그를 삭제합니다.',
-    responses={204: "No Content", 200: PostSerializer(many=True)}
+    operation_id='태그 내부 게시물 조회',
+    operation_description='해당 태그가 달린 게시물을 조회합니다.',
+    responses={200: PostSerializer(many=True), 204: 'No Content'}
   )
   def get(self, request, tag_id):
     try:

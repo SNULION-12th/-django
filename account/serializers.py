@@ -17,3 +17,8 @@ class UserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ["username", "password", "email", "profile"]
+        
+class UserBasicSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "password"]
