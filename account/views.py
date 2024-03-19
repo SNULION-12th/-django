@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from .serializers import UserIdUsernameSerializer, UserSerializer, UserProfileSerializer, UserBasicSerializer
 from .models import UserProfile
 
-class AccountView(APIView):
+class SignUpView(APIView):
     @swagger_auto_schema(
         operation_id='회원가입',
         operation_description='회원가입을 진행합니다.',
@@ -39,34 +39,21 @@ class AccountView(APIView):
         user_serializer = UserSerializer(instance=user)
         return Response(user_serializer.data, status=status.HTTP_201_CREATED)
     
+class SignInView(APIView):
     @swagger_auto_schema(
         operation_id='로그인',
         operation_description='로그인을 진행합니다.',
-        manual_parameters=[
-                openapi.Parameter(
-                    name='username',
-                    in_=openapi.IN_QUERY,
-                    type=openapi.TYPE_STRING,
-                    required=True
-                ),
-                openapi.Parameter(
-                    name='password',
-                    in_=openapi.IN_QUERY,
-                    type= openapi.TYPE_STRING,
-                    required=True
-                ),
-            ],
+        request_body=UserBasicSerializer,
         responses={200: UserSerializer, 404: 'Not Found', 400: 'Bad Request'}
     )
-    def get(self, request):
+    def post(self, request):
         #query_params 에서 username, password를 가져온다.
-        username = request.query_params.get('username')
-        password = request.query_params.get('password')
+        username = request.data.get('username')
+        password = request.data.get('password')
         if username is None or password is None:
             return Response({"message": "missing fields ['username', 'password'] in query_params"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user = User.objects.get(username=username)
-            print(user.password, password)
             if not user.check_password(password):
                 return Response({"message": "Password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
             user_serializer = UserSerializer(instance = user)
