@@ -54,11 +54,11 @@ class PostListView(APIView):
         title = request.data.get('title')
         content = request.data.get('content')
         tag_contents = request.data.get("tags")
-        author_request = request.data.get('author')
-        if not author_request:
+        author_info = request.data.get('author')
+        if not author_info:
             return Response({"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST)
-        username = author_request.get('username')
-        password = author_request.get('password')
+        username = author_info.get('username')
+        password = author_info.get('password')
         if not username or not password:
                 return Response({"detail": "[username, password] fields missing in author"}, status=status.HTTP_400_BAD_REQUEST)
         if not title or not content:
@@ -72,14 +72,14 @@ class PostListView(APIView):
             return Response({"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND)
         
         if tag_contents is not None:
-            for tag_content_j in tag_contents:
-                tag_content = tag_content_j.get('content')
-                if not tag_content:
+            for tag_content in tag_contents:
+                content = tag_content.get('content')
+                if not content:
                     return Response({"detail": "content field missing in tags"}, status=status.HTTP_400_BAD_REQUEST)
-                if not Tag.objects.filter(content=tag_content).exists():
-                    post.tags.create(content=tag_content)
+                if not Tag.objects.filter(content=content).exists():
+                    post.tags.create(content=content)
                 else:
-                    post.tags.add(Tag.objects.get(content=tag_content))
+                    post.tags.add(Tag.objects.get(content=content))
             
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -144,11 +144,11 @@ class PostDetailView(APIView):
         except:
             return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        author_request = request.data.get('author')
-        if not author_request:
+        author_info = request.data.get('author')
+        if not author_info:
             return Response({"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST)
-        username = author_request.get('username')
-        password = author_request.get('password')
+        username = author_info.get('username')
+        password = author_info.get('password')
         try:
             author = User.objects.get(username=username)
             if not author.check_password(password):
@@ -168,14 +168,14 @@ class PostDetailView(APIView):
         tag_contents = request.data.get("tags")
         if tag_contents is not None:
             post.tags.clear()
-            for tag_content_j in tag_contents:
-                tag_content = tag_content_j.get('content')
-                if not tag_content:
+            for tag_content in tag_contents:
+                content = tag_content.get('content')
+                if not content:
                     return Response({"detail": "content field missing in tags"}, status=status.HTTP_400_BAD_REQUEST)
-                if not Tag.objects.filter(content=tag_content).exists():
-                    post.tags.create(content=tag_content)
+                if not Tag.objects.filter(content=content).exists():
+                    post.tags.create(content=content)
                 else:
-                    post.tags.add(Tag.objects.get(content=tag_content))
+                    post.tags.add(Tag.objects.get(content=content))
         post.save()
         serializer = PostSerializer(instance = post)
         return Response(serializer.data, status=status.HTTP_200_OK)

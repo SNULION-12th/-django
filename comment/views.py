@@ -48,11 +48,11 @@ class CommentListView(APIView):
         responses={201: CommentSerializer, 400: 'Bad Request', 404: 'Not Found', 403: 'Forbidden'}
     )
     def post(self, request):
-        author_request = request.data.get("author")
-        if not author_request:
+        author_info = request.data.get("author")
+        if not author_info:
             return Response({"detail": "missing fields ['author']"}, status=status.HTTP_400_BAD_REQUEST)
-        username = author_request.get('username')
-        password = author_request.get('password')
+        username = author_info.get('username')
+        password = author_info.get('password')
         post_id = request.data.get('post')
         content = request.data.get('content')
         if not username or not password:
@@ -83,11 +83,11 @@ class CommentDetailView(APIView):
     )
     def patch(self, request, comment_id):
         content = request.data.get('content')
-        author_request = request.data.get("author")
-        if not author_request or not content:
+        author_info = request.data.get("author")
+        if not author_info or not content:
             return Response({"detail": "missing fields ['author', 'content']"}, status=status.HTTP_400_BAD_REQUEST)
-        username = author_request.get('username')
-        password = author_request.get('password')
+        username = author_info.get('username')
+        password = author_info.get('password')
         if not username or not password:
             return Response({"detail": "missing fields ['username', 'password']"}, status=status.HTTP_400_BAD_REQUEST)
         
