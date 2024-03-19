@@ -88,10 +88,6 @@ class PostDetailView(APIView):
     @swagger_auto_schema(
             operation_id='게시글 상세 조회',
             operation_description='게시글 1개의 상세 정보를 조회합니다.',
-            manaual_parameters=[
-                openapi.Parameter('username', openapi.IN_QUERY, description="게시글 작성자의 username", type=openapi.TYPE_STRING, required=True),
-                openapi.Parameter('password', openapi.IN_QUERY, description="게시글 작성자의 password", type=openapi.TYPE_STRING, required=True),
-            ],
             responses={200: PostSerializer,400: 'Bad Request'}
         )
     def get(self, request, post_id):
@@ -101,11 +97,9 @@ class PostDetailView(APIView):
             post = Post.objects.get(id=post_id)
         except:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        if post.author.username != request.query_params.get('username'):
-            return Response({"detail": "You are not the author of this post."}, status=status.HTTP_400_BAD_REQUEST)
-        if not post.author.check_password(request.query_params.get('password')):
-            return Response({"detail": "Password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer = PostSerializer(instance = post)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
         
     @swagger_auto_schema(
@@ -204,10 +198,10 @@ class LikeView(APIView):
             return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
         
         ### 3 ###
-        like_list = post.like_set.filter(user=author)
+        is_liked = post.like_set.filter(user=author).count() > 0
 
         ### 4 ###
-        if like_list.count() > 0:
+        if is_liked == True:
             post.like_set.get(user=author).delete()
             print("좋아요 취소")
         else:
