@@ -161,9 +161,17 @@ class PostDetailView(APIView):
                 {"detail": "Post Not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
+        author_info = request.data.get("author")
+        if not author_info:
+            return Response(
+                {"detail": "author field missing."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        username = author_info.get("username")
+        password = author_info.get("password")
         try:
-            author = User.objects.get(username=request.data.get("username"))
-            if not author.check_password(request.data.get("password")):
+            author = User.objects.get(username=username)
+            if not author.check_password(password):
                 return Response(
                     {"detail": "Password is incorrect."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -258,11 +266,17 @@ class LikeView(APIView):
             return Response(
                 {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
+        author_info = request.data.get("author")
+        if not author_info:
+            return Response(
+                {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        username = author_info.get("username")
+        password = author_info.get("password")
         ### 2 ###
         try:
-            author = User.objects.get(username=request.data.get("username"))
-            if not author.check_password(request.data.get("password")):
+            author = User.objects.get(username=username)
+            if not author.check_password(password):
                 return Response(
                     {"detail": "Password is incorrect."},
                     status=status.HTTP_400_BAD_REQUEST,

@@ -177,8 +177,14 @@ class CommentDetailView(APIView):
     )
     def delete(self, request, comment_id):
 
-        username = request.data.get("username")
-        password = request.data.get("password")
+        author_info = request.data.get("author")
+        if not author_info:
+            return Response(
+                {"detail": "missing fields ['author']"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        username = author_info.get("username")
+        password = author_info.get("password")
         if not username or not password:
             return Response(
                 {"detail": "missing fields ['username', 'password']"},
@@ -189,8 +195,7 @@ class CommentDetailView(APIView):
             author = User.objects.get(username=username)
             if not author.check_password(password):
                 return Response(
-                    {"detail": "Password is wrong!"},
-                    status=status.HTTP_401_UNAUTHORIZED,
+                    {"detail": "Password is wrong!"}, status=status.HTTP_403_FORBIDDEN
                 )
         except User.DoesNotExist:
             return Response(
