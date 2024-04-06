@@ -35,22 +35,6 @@ class PostListView(APIView):
     @swagger_auto_schema(
         operation_id="게시글 목록 조회",
         operation_description="게시글 목록을 조회합니다.",
-        manual_parameters=[
-            openapi.Parameter(
-                "username",
-                openapi.IN_QUERY,
-                description="게시글 작성자의 username",
-                type=openapi.TYPE_STRING,
-                required=True,
-            ),
-            openapi.Parameter(
-                "password",
-                openapi.IN_QUERY,
-                description="게시글 작성자의 password",
-                type=openapi.TYPE_STRING,
-                required=True,
-            ),
-        ],
         responses={
             200: PostSerializer(many=True),
             404: "Not Found",
@@ -58,18 +42,7 @@ class PostListView(APIView):
         },
     )
     def get(self, request):
-        username = request.query_params.get("username")
-        password = request.query_params.get("password")
-        if username is None or password is None:
-            return Response(
-                {"detail": "username and password are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        posts = (
-            Post.objects.all()
-            .annotate(like_count=Count("like_users"))
-            .order_by("-like_count")
-        )
+        posts = Post.objects.all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -131,13 +104,6 @@ class PostDetailView(APIView):
         responses={200: PostSerializer, 400: "Bad Request"},
     )
     def get(self, request, post_id):
-        if not request.query_params.get("username") or not request.query_params.get(
-            "password"
-        ):
-            return Response(
-                {"detail": "username and password are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
             post = Post.objects.get(id=post_id)
         except:
