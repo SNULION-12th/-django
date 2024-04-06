@@ -115,16 +115,10 @@ class PostListView(APIView):
 
         if tag_contents is not None:
             for tag_content in tag_contents:
-                content = tag_content.get("content")
-                if not content:
-                    return Response(
-                        {"detail": "content field missing in tags"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                if not Tag.objects.filter(content=content).exists():
-                    post.tags.create(content=content)
+                if not Tag.objects.filter(content=tag_content).exists():
+                    post.tags.create(content=tag_content)
                 else:
-                    post.tags.add(Tag.objects.get(content=content))
+                    post.tags.add(Tag.objects.get(content=tag_content))
 
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -239,16 +233,10 @@ class PostDetailView(APIView):
         if tag_contents is not None:
             post.tags.clear()
             for tag_content in tag_contents:
-                content = tag_content.get("content")
-                if not content:
-                    return Response(
-                        {"detail": "content field missing in tags"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                if not Tag.objects.filter(content=content).exists():
-                    post.tags.create(content=content)
+                if not Tag.objects.filter(content=tag_content).exists():
+                    post.tags.create(content=tag_content)
                 else:
-                    post.tags.add(Tag.objects.get(content=content))
+                    post.tags.add(Tag.objects.get(content=tag_content))
         post.save()
         serializer = PostSerializer(instance=post)
         return Response(serializer.data, status=status.HTTP_200_OK)
