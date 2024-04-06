@@ -23,19 +23,6 @@ class SignUpView(APIView):
         responses={201: UserProfileSerializer, 400: "Bad Request"},
     )
     def post(self, request):
-        profile = request.data.get("profile")
-
-        if profile is None:
-            return Response(
-                {"message": "missing fields ['profile']"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if profile.get("college") is None or profile.get("major") is None:
-            return Response(
-                {"message": "missing fields ['college', 'major'] in profile"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid(raise_exception=True):
@@ -43,8 +30,11 @@ class SignUpView(APIView):
             user.set_password(user.password)
             user.save()
 
+        college = request.data.get("college")
+        major = request.data.get("major")
+
         user_profile = UserProfile.objects.create(
-            user=user, college=profile.get("college"), major=profile.get("major")
+            user=user, college=college, major=major
         )
         user_profile_serializer = UserProfileSerializer(instance=user_profile)
         return Response(user_profile_serializer.data, status=status.HTTP_201_CREATED)
