@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from django.contrib.auth.hashers import make_password
 
 from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer
 
@@ -26,8 +26,10 @@ class SignUpView(APIView):
 
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid(raise_exception=True):
+            user_serializer.validated_data["password"] = make_password(
+                user_serializer.validated_data["password"]
+            )
             user = user_serializer.save()
-            user.set_password(user.password)
             user.save()
 
         college = request.data.get("college")
