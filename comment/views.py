@@ -116,7 +116,7 @@ class CommentDetailView(APIView):
             401: "Unauthorized",
         },
     )
-    def patch(self, request, comment_id):
+    def put(self, request, comment_id):
         content = request.data.get("content")
         author_info = request.data.get("author")
         if not author_info or not content:
