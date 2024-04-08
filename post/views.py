@@ -145,7 +145,7 @@ class PostDetailView(APIView):
             if post.author != author:
                 return Response(
                     {"detail": "You are not the author of this post."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_403_FORBIDDEN,
                 )
         except:
             return Response(
@@ -186,7 +186,7 @@ class PostDetailView(APIView):
             if post.author != author:
                 return Response(
                     {"detail": "You are not the author of this post."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_403_FORBIDDEN,
                 )
         except:
             return Response(

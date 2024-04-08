@@ -152,7 +152,8 @@ class CommentDetailView(APIView):
 
         if author != comment.author:
             return Response(
-                {"detail": "Permission denied"}, status=status.HTTP_401_UNAUTHORIZED
+                {"detail": "You are not the author of this comment."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         comment.content = content
@@ -209,7 +210,8 @@ class CommentDetailView(APIView):
 
         if author != comment.author:
             return Response(
-                {"detail": "Permission denied"}, status=status.HTTP_401_UNAUTHORIZED
+                {"detail": "You are not the author of this comment."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         comment.delete()
