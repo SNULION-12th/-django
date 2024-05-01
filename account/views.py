@@ -6,7 +6,11 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import make_password
 
-from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer
+from account.request_serializers import (
+    SignInRequestSerializer,
+    SignUpRequestSerializer,
+    TokenRefreshRequestSerializer,
+)
 
 from .serializers import (
     UserSerializer,
@@ -86,6 +90,7 @@ class TokenRefreshView(APIView):
     @swagger_auto_schema(
         operation_id="토큰 재발급",
         operation_description="access 토큰을 재발급 받습니다.",
+        request_body=TokenRefreshRequestSerializer,
         responses={200: UserProfileSerializer},
     )
     def post(self, request):
