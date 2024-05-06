@@ -80,16 +80,16 @@ class PostDetailView(APIView):
         except Post.DoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        try:
-          title = request.data.get('title')
-          content = request.data.get('content')
-          if not title or not content:
-            return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
-        except:
-          return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+        title = request.data.get('title')
+        content = request.data.get('content')
 
-        post.title = title
-        post.content = content
+        if title is None and content is None:
+          return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+        if title is not None:
+          post.title = title
+        if content is not None:
+          post.content = content
+
         post.save()
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
