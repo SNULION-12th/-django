@@ -14,7 +14,7 @@ class PostListView(APIView):
             operation_description='게시글 목록을 조회합니다.',
             responses={200: PostSerializer(many=True)}
         )
-    
+     
 		### 얘네가 class inner function 들! ###
     def get(self, request): 
         posts = Post.objects.all()
