@@ -40,7 +40,7 @@ class PostListView(APIView):
         content = request.data.get('content')
         if not title or not content:
             return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
-        post = Post.objects.create(title=title, content=content)
+        post = Post.objects.create(title=title, content=content) #
         serializer = PostSerializer(post) #-- serializer가 알아서 json으로 바꿔줌
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         # return Response({
@@ -51,6 +51,13 @@ class PostListView(APIView):
         #     }, status=status.HTTP_201_CREATED)
 
 class PostDetailView(APIView):
+
+    @swagger_auto_schema(
+            operation_id='게시글 상세 조회',
+            operation_description='게시글 1개의 상세 정보를 조회합니다.',
+            responses={200: PostSerializer}
+        )
+    
     def get(self, request, post_id):
         try:
             post = Post.objects.get(id=post_id)
@@ -59,6 +66,12 @@ class PostDetailView(APIView):
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+            operation_id='게시글 삭제',
+            operation_description='게시글을 삭제합니다.',
+            responses={204: 'No Content', 404: 'Not Found'}
+        )
+    
     def delete(self, request, post_id):
         try:
             post = Post.objects.get(id=post_id)
@@ -66,3 +79,4 @@ class PostDetailView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)        
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
