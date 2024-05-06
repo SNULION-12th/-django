@@ -81,8 +81,8 @@ class PostDetailView(APIView):
         title = request.data.get("title")
         content = request.data.get("content")
         
-        if not title and not content:
-            return Response({"detail": "No change on title and content"}, status=status.HTTP_400_BAD_REQUEST)
+        if not title or not content:
+            return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
         
         post.title = title
         post.content = content
