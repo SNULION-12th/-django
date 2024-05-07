@@ -68,7 +68,8 @@ class PostDetailView(APIView):
     @swagger_auto_schema(
             operation_id='게시글 수정',
             operation_description='게시글을 수정합니다.',
-            responses={200: 'OK', 404: 'Not Found'}
+            request_body=PostSerializer,
+            responses={200: 'OK',304:'Not Modified' ,404: 'Not Found'}
         )
     def put(self, request, post_id):
         try:
