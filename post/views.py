@@ -80,6 +80,9 @@ class PostDetailView(APIView):
                 post.content = new_content
             if new_title is not None:
                 post.title = new_title
+                
+            if new_content is None and new_title is None:
+              return Response({"detail": "no data to update."}, status=status.HTTP_304_NOT_MODIFIED)
 
             post.save()
             return Response({"detail": PostSerializer(post).data}, status=status.HTTP_200_OK)
