@@ -73,7 +73,7 @@ class PostDetailView(APIView):
         operation_id='게시글 수정',
         operation_description='게시글을 수정합니다.',
         request_body=PostSerializer,
-        responses={201: PostSerializer, 404: 'Not Found'},
+        responses={200: PostSerializer, 404: 'Not Found'},
     )        
     def put(self, request, post_id):
         try:
