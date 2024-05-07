@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from .models import Post
 from .serializers import PostSerializer
 from drf_yasg.utils import swagger_auto_schema
+from django.shortcuts import get_object_or_404
 
 class PostListView(APIView):
 	### 얘네가 class inner function 들! ###
@@ -87,3 +88,30 @@ class PostDetailView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @swagger_auto_schema(
+            operation_id='게시글 수정',
+            operation_description='게시글을 수정합니다.',
+            request_body=PostSerializer,
+            responses={200: PostSerializer}
+        )
+    def put(self, request, post_id):
+        
+        # 요청 바디를 통해 들어온 데이터를 가져옴
+        title = request.data.get('title')
+        content = request.data.get('content')
+        
+        # 요청된 post_id를 가진 포스트를 가져옴
+        post = get_object_or_404(Post, pk=post_id)
+        
+        # title이나 content가 없을 때 예외처리
+        if not title or not content:
+            return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 가져온 포스트를 수정함
+        post.title = title
+        post.content = content
+        post.save()
+        
+        serializer = PostSerializer(post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
