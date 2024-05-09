@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from .serializers import PostSerializer
 from .models import Post
+from drf_yasg.utils import swagger_auto_schema
 
 # Create your views here.
 class PostListView(APIView):
