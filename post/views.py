@@ -68,6 +68,13 @@ class PostDetailView(APIView):
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+    @swagger_auto_schema(
+        operation_id='게시글 수정',
+        operation_description='게시글을 수정합니다.',
+        request_body=PostSerializer,
+        responses={200: PostSerializer, 400: "[title, content] fields missing.", 404: 'Not Found'}
+    )
+    
     def put(self, request, post_id):
         try:
             post = Post.objects.get(id=post_id)
