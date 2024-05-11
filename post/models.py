@@ -16,6 +16,7 @@ class Post(models.Model):
     ## created_at의 경우는 현재 시간 자동으로 입력되게!
     created_at = models.DateTimeField(default=timezone.now)
 
+
 		## 이건 print하면 어떤 값을 return할 지 알려주는 것!
     def __str__(self):
         return self.title
