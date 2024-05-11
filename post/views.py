@@ -59,3 +59,23 @@ class PostDetailView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @swagger_auto_schema(
+            operation_id='게시글 업데이트',
+            operation_description='게시글을 업데이트합니다.',
+            responses={204: 'No Content', 404: 'Not Found'}
+        )
+    def put(self, request, post_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        new_title = request.data.get('title')
+        new_content = request.data.get('content')
+        if not new_title or not new_content:
+            return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+        post.title = new_title
+        post.content = new_content
+        post.save()
+        serializer = PostSerializer(post)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
