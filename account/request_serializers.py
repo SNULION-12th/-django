@@ -1,22 +1,18 @@
-from rest_framework.serializers import ModelSerializer
-from django.contrib.auth.models import User
-from .models import UserProfile
+### 🔻 이 부분 추가 🔻 ###
+from rest_framework import serializers
 
 
-class UserIdUsernameSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username"]
+class SignUpRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    username = serializers.CharField()
+    college = serializers.CharField()
+    major = serializers.CharField()
 
 
-class UserSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username", "password", "email"]
+class SignInRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    username = serializers.CharField()
+    password = serializers.CharField()
 
-
-class UserProfileSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
-    class Meta:
-        model = UserProfile
-        fields = "__all__"
+### 🔺 이 부분 추가 🔺 ###
