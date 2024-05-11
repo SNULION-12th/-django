@@ -44,7 +44,25 @@ class PostDetailView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+            operation_id='게시글 수정',
+            operation_description='게시글을 수정합니다.',
+            responses={200: PostSerializer, 400: 'Bad Request', 404: 'Not Found'}
+        )
+    def put(self, request, post_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
+        serializer = PostSerializer(post, data=request.data, partial=True)
+
+        if not serializer.is_valid():
+            return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     @swagger_auto_schema(
             operation_id='게시글 삭제',
             operation_description='게시글을 삭제합니다.',
