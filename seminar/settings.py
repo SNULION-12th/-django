@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 	'post',
 	'django.contrib.staticfiles',
     'drf_yasg',
+	'account',
+	'tag',
 ]
 
 MIDDLEWARE = [
