@@ -83,12 +83,8 @@ class PostDetailView(APIView):
         title = request.data.get('title')
         content = request.data.get('content')
 
-        if title is None and content is None:
+        if title is None or content is None:
           return Response({"detail": "[title, content] fields missing."}, status=status.HTTP_400_BAD_REQUEST)
-        if title is not None:
-          post.title = title
-        if content is not None:
-          post.content = content
 
         post.save()
         serializer = PostSerializer(post)
