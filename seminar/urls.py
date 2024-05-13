@@ -34,7 +34,9 @@ schema_view = get_schema_view(
 
 ##url은 api/post/로 시작할거야~
 urlpatterns = [
+    path('api/tag/', include('tag.urls')),
     path('admin/', admin.site.urls),
     path('api/post/', include('post.urls')),
+    path('api/account/', include('account.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
