@@ -1,17 +1,35 @@
 from django.shortcuts import render
+# from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from .models import Post
+from .models import Post, Like
 from .serializers import PostSerializer
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+
 from .request_serializers import PostListRequestSerializer, PostDetailRequestSerializer
+
+
 from account.models import User
 from tag.models import Tag
 from account.request_serializers import SignInRequestSerializer
-from .models import Post, Like
-# Create your views here.
+
+
+
+# FBV는 토글 내부 내용에서 확인 가능
+# @api_view(['POST'])
+# def CreatePostView(request):
+#     title = request.data.get('title')
+#     content = request.data.get('content')
+#     post = Post.objects.create(title=title, content=content)
+#     return Response({"msg":f"'{post.title}'이 생성되었어요!"})
+
+# @api_view(['GET'])
+# def ReadAllPostView(request):
+#     posts = Post.objects.all()
+#     contents = [{post.title:post.content} for post in posts]
+#     return Response({"posts":contents})
+
 class PostListView(APIView):
     @swagger_auto_schema(
         operation_id="게시글 목록 조회",
@@ -76,7 +94,6 @@ class PostListView(APIView):
 
         serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
 
 
 class PostDetailView(APIView):
@@ -201,6 +218,7 @@ class PostDetailView(APIView):
         post.save()
         serializer = PostSerializer(instance=post)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
 
 class LikeView(APIView):

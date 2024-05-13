@@ -7,4 +7,4 @@ class UserProfile(models.Model):
     major = models.CharField(max_length=32, blank=True)
 
     def __str__(self):
-      return f"id={self.id}, user_id={self.user.id}, college={self.college}, major={self.major}"
+        return f"id={self.id}, user_id={self.user.id}, college={self.college}, major={self.major}"
