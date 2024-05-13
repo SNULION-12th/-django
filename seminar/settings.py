@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'post',
     'drf_yasg', # required for serving swagger ui's css/js files
+    'account', # 추가("account.apps.AccountConfig"도 가능)
+    'tag',
 ]
 
 MIDDLEWARE = [
