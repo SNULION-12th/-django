@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostListView, PostDetailView
+from .views import PostListView, PostDetailView, LikeView
 
 ## post app의 주소를 설정하는데
 app_name = 'post'
@@ -9,5 +9,6 @@ urlpatterns = [
     
     ## path에 int가 들어오면 그걸 post_id라는 변수로 저장한 후, 
     ## postDetailView를 실행시킬거야~
-    path("<int:post_id>/", PostDetailView.as_view())
+    path("<int:post_id>/", PostDetailView.as_view()),
+    path("<int:post_id>/like/", LikeView.as_view()),
 ]
