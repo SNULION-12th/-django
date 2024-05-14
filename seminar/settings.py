@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'drf_yasg',
 	'account',
 	'tag',
+	'comment',
 ]
 
 MIDDLEWARE = [
