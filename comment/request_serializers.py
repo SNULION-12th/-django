@@ -9,5 +9,4 @@ class CommentListRequestSerializer(serializers.Serializer):
 
 class CommentDetailRequestSerializer(serializers.Serializer):
     content = serializers.CharField()
-    post = serializers.IntegerField()
     author = SignInRequestSerializer()
