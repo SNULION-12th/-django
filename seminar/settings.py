@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'account', # 추가("account.apps.AccountConfig"도 가능)
     'tag',
+    'comment',
 ]
 
 MIDDLEWARE = [

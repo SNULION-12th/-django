@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-
 class SignUpRequestSerializer(serializers.Serializer):  #회원가입할 때 받아야 하는 정보
     email = serializers.EmailField()
     password = serializers.CharField()
