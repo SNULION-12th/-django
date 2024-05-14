@@ -25,11 +25,19 @@ class Post(models.Model):
 
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
 
+    comment_users = models.ManyToManyField(User,blank=True,related_name='comment_posts',through='Comment')
+
 		## 이건 print하면 어떤 값을 return할 지 알려주는 것!
     def __str__(self):
         return self.title
     
 class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+class Comment(models.Model):
+    content = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
