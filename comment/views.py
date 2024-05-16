@@ -16,7 +16,6 @@ class CommentListView(APIView):
     @swagger_auto_schema(
         operation_id="댓글 목록 조회",
         operation_description="특정 post의 모든 댓글을 조회합니다.",
-        # 상언오빠가 도와준 쿼리 매개변수 추가...
         manual_parameters=[
             openapi.Parameter(
                 'post',
