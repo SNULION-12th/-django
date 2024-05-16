@@ -3,7 +3,7 @@ from rest_framework import serializers
 from account.request_serializers import SignInRequestSerializer
 
 class CommentListRequestSerializer(serializers.Serializer):
-  author = SignInRequestSerializer
+  author = SignInRequestSerializer()
   post = serializers.IntegerField()
   content = serializers.CharField()
 
