@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     "account",
     "tag",
     "comment",
+    "corsheaders",
     "rest_framework",
+    "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
 ]
 
