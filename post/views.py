@@ -41,24 +41,30 @@ class PostListView(APIView):
         content = request.data.get("content")
         tag_contents = request.data.get("tags")
         author_info = request.data.get("author")
+        #- check if author_info is empty
         if not author_info:
             return Response(
                 {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
             )
         username = author_info.get("username")
         password = author_info.get("password")
+        
+        #- check if username & pw is empty
         if not username or not password:
             return Response(
                 {"detail": "[username, password] fields missing in author"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        #- check if title or content is empty
         if not title or not content:
             return Response(
                 {"detail": "[title, content] fields missing."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
+            #- finding actual user object
             author = User.objects.get(username=username)
+            #- check if password is incorect
             if not author.check_password(password):
                 return Response(
                     {"detail": "Password is incorrect."},
