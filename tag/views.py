@@ -7,6 +7,7 @@ from .serializers import TagSerializer
 
 from post.models import Post
 from post.serializers import PostSerializer
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 class TagListView(APIView):
