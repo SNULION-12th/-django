@@ -9,11 +9,9 @@ from drf_yasg.utils import swagger_auto_schema
 
 from .request_serializers import PostListRequestSerializer, PostDetailRequestSerializer
 
-
 from account.models import User
 from tag.models import Tag
 from account.request_serializers import SignInRequestSerializer
-
 
 
 # FBV는 토글 내부 내용에서 확인 가능
