@@ -1,4 +1,3 @@
-### 🔻 이 부분 추가 🔻 ###
 from rest_framework import serializers
 
 
@@ -14,5 +13,3 @@ class SignInRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     username = serializers.CharField()
     password = serializers.CharField()
-
-### 🔺 이 부분 추가 🔺 ###

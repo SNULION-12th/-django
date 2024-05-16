@@ -23,7 +23,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
     
-    ##Author을 Foreign Key로 가져온다는 뜻, 기본값이 False인데 null=True일 경우 빈칸 가능, ㅊ
+    ##Author을 Foreign Key로 가져온다는 뜻, 기본값이 False인데 null=True일 경우 빈칸 가능
     
     author = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
 
