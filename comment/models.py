@@ -6,7 +6,7 @@ from post.models import Post
 # Create your models here.
 
 class Comment(models.Model):
-  post = models.ForeignKey(Post, on_delete=models.CASCADE) #foreign key -- many-to-many
+  post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE) #foreign key -- many-to-many
   content = models.TextField()
   author = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
   created_at = models.DateTimeField(default=timezone.now)
