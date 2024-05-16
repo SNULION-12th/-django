@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('post', '0003_like_post_like_users'),
+        ('post', '0002_post_author_like_post_like_users'),
         ('tag', '0001_initial'),
     ]
 
