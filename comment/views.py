@@ -109,8 +109,15 @@ class CommentDetailView(APIView):
             return Response(
                 {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
             )
+        
         username = author_info.get("username")
         password = author_info.get("password")
+        if not username or not password:
+            return Response(
+                {"detail": "[username, password] fields missing in author"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         try:
             author = User.objects.get(username=username)
             if not author.check_password(password):
