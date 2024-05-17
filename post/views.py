@@ -50,7 +50,8 @@ class PostListView(APIView):
         operation_id="게시글 생성",
         operation_description="게시글을 생성합니다.",
         request_body=PostListRequestSerializer,
-        responses={201: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={204: "No Content", 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def post(self, request):
         if not request.user.is_authenticated:
@@ -101,7 +102,8 @@ class PostDetailView(APIView):
         operation_id="게시글 삭제",
         operation_description="게시글을 삭제합니다.",
         request_body=SignInRequestSerializer,
-        responses={204: "No Content", 404: "Not Found", 400: "Bad Request"},
+        responses={204: "No Content", 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter('Authorization', openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def delete(self, request, post_id):
         if not request.user.is_authenticated:
@@ -129,7 +131,8 @@ class PostDetailView(APIView):
         operation_id="게시글 수정",
         operation_description="게시글을 수정합니다.",
         request_body=PostDetailRequestSerializer,
-        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={204: "No Content", 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter('Authorization', openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def put(self, request, post_id):
         if not request.user.is_authenticated:
@@ -178,7 +181,8 @@ class LikeView(APIView):
         operation_id="좋아요 토글",
         operation_description="좋아요를 토글합니다. 이미 좋아요가 눌려있으면 취소합니다.",
         request_body=SignInRequestSerializer,
-        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def post(self, request, post_id):
         if not request.user.is_authenticated:

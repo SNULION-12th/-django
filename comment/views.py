@@ -55,9 +55,11 @@ class CommentListView(APIView):
         responses={
             201: CommentSerializer,
             400: "Bad Request",
+            401: "Unauthorized",
             404: "Not Found",
             403: "Forbidden",
         },
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def post(self, request):
         if not request.user.is_authenticated:
@@ -97,6 +99,7 @@ class CommentDetailView(APIView):
             404: "Not Found",
             401: "Unauthorized",
         },
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def put(self, request, comment_id):
         if not request.user.is_authenticated:
@@ -137,6 +140,7 @@ class CommentDetailView(APIView):
             404: "Not Found",
             401: "Unauthorized",
         },
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def delete(self, request, comment_id):
         if not request.user.is_authenticated:
