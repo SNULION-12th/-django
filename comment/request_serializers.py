@@ -5,11 +5,11 @@ from account.request_serializers import SignInRequestSerializer
 
 class CommentCreateRequestSerializer(serializers.Serializer):
     author = SignInRequestSerializer()
-    post = PostSerializer()
+    post = serializers.IntegerField()
     content = serializers.CharField()
 
 class CommentListRequestSerializer(serializers.Serializer):
-    post = PostSerializer()
+    post = serializers.IntegerField()
     
 class CommentUpdateRequestSerializer(serializers.Serializer):
     data = CommentCreateRequestSerializer()

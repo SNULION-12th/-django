@@ -135,7 +135,6 @@ class PostDetailView(APIView):
             return Response(
                 {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
