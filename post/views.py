@@ -5,7 +5,7 @@ from .request_serializers import PostListRequestSerializer,PostDetailRequestSeri
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from .models import Post,Like
+from .models import Post,Like,Comment
 from .serializers import PostSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
@@ -255,4 +255,20 @@ class LikeView(APIView):
             print("좋아요 누름")
 
         serializer = PostSerializer(instance=post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class CommentListView(APIView):
+    @swagger_auto_schema(
+        operation_id="댓글 조회",
+        operation_description="게시글 1개의 댓글을 조회합니다.",
+        responses={200: PostSerializer, 404: "Not Found"},
+    )
+    def get(self, request, post_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PostSerializer(instance=post)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
