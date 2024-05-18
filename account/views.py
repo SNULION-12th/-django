@@ -1,19 +1,37 @@
+# 만들어둔 모델, serializer (User, UserProfile) import
 from django.contrib.auth.models import User
-from django.contrib import auth
+from .models import UserProfile
+from .serializer import UserSerializer,UserProfileSerializer
+
+# APIView, JWT token, 비밀번호 해싱을 위해 필요한 class import
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer
-
-from .serializer import (
-    UserSerializer,
-    UserProfileSerializer,
+from account.request_serializers import (
+    SignInRequestSerializer,
+    SignUpRequestSerializer,
 )
-from .models import UserProfile
 
+def generate_token_in_serialized_data(user, user_profile):
+    token = RefreshToken.for_user(user)
+    refresh_token, access_token = str(token), str(token.access_token)
+    serialized_data = UserProfileSerializer(user_profile).data
+    serialized_data["token"] = {"access": access_token, "refresh": refresh_token}
+    return serialized_data
+
+def set_token_on_response_cookie(user, status_code):
+    token = RefreshToken.for_user(user)
+    user_profile = UserProfile.objects.get(user=user)
+    serialized_data = UserProfileSerializer(user_profile).data
+    res = Response(serialized_data, status=status_code)
+    res.set_cookie("refresh_token", value=str(token), httponly=True)
+    res.set_cookie("access_token", value=str(token.access_token), httponly=True)
+    return res
 
 class SignUpView(APIView):
     @swagger_auto_schema(
@@ -36,8 +54,9 @@ class SignUpView(APIView):
         user_profile = UserProfile.objects.create(
             user=user, college=college, major=major
         )
-        user_profile_serializer = UserProfileSerializer(instance=user_profile)
-        return Response(user_profile_serializer.data, status=status.HTTP_201_CREATED)
+        return set_token_on_response_cookie(user, status_code=status.HTTP_201_CREATED)
+        
+        
 
 
 class SignInView(APIView):
@@ -48,7 +67,6 @@ class SignInView(APIView):
         responses={200: UserSerializer, 404: "Not Found", 400: "Bad Request"},
     )
     def post(self, request):
-        # query_params 에서 username, password를 가져온다.
         username = request.data.get("username")
         password = request.data.get("password")
         if username is None or password is None:
@@ -63,9 +81,8 @@ class SignInView(APIView):
                     {"message": "Password is incorrect"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            user_profile = UserProfile.objects.get(user=user)
-            user_profile_serializer = UserProfileSerializer(instance=user_profile)
-            return Response(user_profile_serializer.data, status=status.HTTP_200_OK)
+            
+            return set_token_on_response_cookie(user, status_code=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response(
