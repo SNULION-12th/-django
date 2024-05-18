@@ -3,7 +3,8 @@ from django.contrib import auth
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer
 
@@ -12,7 +13,6 @@ from .serializers import (
     UserProfileSerializer,
 )
 from .models import UserProfile
-from drf_yasg.utils import swagger_auto_schema
 
 
 class SignUpView(APIView):
@@ -71,4 +71,3 @@ class SignInView(APIView):
             return Response(
                 {"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND
             )
-        
