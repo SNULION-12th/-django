@@ -9,6 +9,8 @@ class SignUpRequestSerializer(serializers.Serializer):  #회원가입할 때 받
 
 
 class SignInRequestSerializer(serializers.Serializer): #로그인할 때 받아야 하는 정보
-    email = serializers.EmailField()
     username = serializers.CharField()
     password = serializers.CharField()
+
+class TokenRefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()

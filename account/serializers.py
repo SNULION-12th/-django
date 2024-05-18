@@ -12,7 +12,8 @@ class UserIdUsernameSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "password", "email"] #--이 값들이 user 라는 것에 담길 것.
+        fields = ["id", "username", "password", "email"] #--이 값들이 user 라는 것에 담길 것. 
+        #firstname, lastname, 등 뭐가 많지만 그 중에 이것들만 사용할 것임.
 
 
 class UserProfileSerializer(ModelSerializer):
