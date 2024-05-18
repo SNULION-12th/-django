@@ -38,150 +38,85 @@ class CommentListView(APIView):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   @swagger_auto_schema(
-    operation_id="댓글 생성",
-    operation_description="댓글을 생성합니다.",
-    request_body=CommentListRequestSerializer,
-    responses={201: CommentSerializer, 400: "Bad Request", 403: "Forbidden", 404: "Not Found"},
-  )
+        operation_id="댓글 생성",
+        operation_description="특정 게시글에 댓글을 생성합니다.",
+        request_body=CommentListRequestSerializer,
+        responses={
+            201: CommentSerializer,
+            400: "Bad Request",
+            401: "Unauthorized",
+            404: "Not Found",
+            403: "Forbidden",
+        },
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
+    )
   def post(self, request):
-    author_info = request.data.get("author")
-    post_id = request.data.get("post")
-    content = request.data.get("content")
-
-    if not author_info:
-       return Response(
-          {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
-       )
-
-    username = author_info.get("username")
-    password = author_info.get("password")
-    if not username or not password:
-        return Response(
-            {"detail": "[username, password] fields missing in author"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if post_id is None:
-       return Response(
-          {"detail": "post field missing."}, status=status.HTTP_400_BAD_REQUEST
-       )
-    if not content:
-       return Response(
-          {"detail": "content field missing."}, status=status.HTTP_400_BAD_REQUEST
-       )
-    try:
-        post = Post.objects.get(id=post_id)
-    except:
-        return Response({"detail": "No such post."}, status=status.HTTP_404_NOT_FOUND)
-
-    try:
-        author = User.objects.get(username=username)
-        if not author.check_password(password):
+        ### 🔻 이 부분 수정 🔻 ###
+        if not request.user.is_authenticated:
             return Response(
-                {"detail": "Password is incorrect."},
-                status=status.HTTP_403_FORBIDDEN,
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        comment = Comment.objects.create(content=content, post_id=post_id, author=author)
-    except:
-        return Response(
-            {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
+        author = request.user
+        ### 🔺 이 부분 수정 🔺 ###
+        post_id = request.data.get("post")
+        content = request.data.get("content")
+
+        if not post_id or not content:
+            return Response(
+                {"detail": "missing fields ['post', 'content']"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not Post.objects.filter(id=post_id).exists():
+            return Response(
+                {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        comment = Comment.objects.create(
+            post_id=post_id, author=author, content=content
         )
-    serializer = CommentSerializer(comment)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CommentDetailView(APIView):
   @swagger_auto_schema(
-    operation_id="댓글 수정",
-    operation_description="댓글을 수정합니다.",
-    request_body=CommentDetailRequestSerializer,
-    responses={200: CommentSerializer, 400: "Bad Request", 401: "Unauthorized", 404: "Not Found"},
-  )
-  def put(self, request, comment_id):
-    author_info = request.data.get("author")
-    content = request.data.get("content")
+        operation_id="댓글 생성",
+        operation_description="특정 게시글에 댓글을 생성합니다.",
+        request_body=CommentDetailRequestSerializer,
+        responses={
+            201: CommentSerializer,
+            400: "Bad Request",
+            401: "Unauthorized",
+            404: "Not Found",
+            403: "Forbidden",
+        },
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
+    )
+  def post(self, request):
+        ### 🔻 이 부분 수정 🔻 ###
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        author = request.user
+        ### 🔺 이 부분 수정 🔺 ###
+        post_id = request.data.get("post")
+        content = request.data.get("content")
 
-    if not author_info:
-       return Response(
-          {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
-       )
-    if not content:
-       return Response(
-          {"detail": "content field missing."}, status=status.HTTP_400_BAD_REQUEST
-       )
+        if not post_id or not content:
+            return Response(
+                {"detail": "missing fields ['post', 'content']"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    username = author_info.get("username")
-    password = author_info.get("password")
-    if not username or not password:
-        return Response(
-            {"detail": "[username, password] fields missing in author"},
-            status=status.HTTP_400_BAD_REQUEST,
+        if not Post.objects.filter(id=post_id).exists():
+            return Response(
+                {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        comment = Comment.objects.create(
+            post_id=post_id, author=author, content=content
         )
-    try:
-      author = User.objects.get(username=username)
-      if not author.check_password(password):
-          return Response(
-              {"detail": "Password is incorrect."},
-              status=status.HTTP_403_FORBIDDEN,
-          )
-    except:
-      return Response(
-        {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
-      )
-
-    try:
-       comment = Comment.objects.get(id=comment_id)
-    except:
-       return Response(
-          {"detail": "No such comment"}, status=status.HTTP_404_NOT_FOUND
-       )
-
-    if comment.author != author:
-      return Response(
-        {"detail": "No authorization"}, status=status.HTTP_401_UNAUTHORIZED
-      )
-
-    comment.content = content
-    comment.save()
-    serializer = CommentSerializer(comment)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-  @swagger_auto_schema(
-    operation_id="댓글 삭제",
-    operation_description="댓글을 삭제합니다.",
-    request_body=SignInRequestSerializer,
-    responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized", 404: "Not Found"},
-  )
-  def delete(self, request, comment_id):
-    username = request.data.get("username")
-    password = request.data.get("password")
-    if not username or not password:
-        return Response(
-            {"detail": "[username, password] fields missing in author"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-      author = User.objects.get(username=username)
-      if not author.check_password(password):
-          return Response(
-              {"detail": "Password is incorrect."},
-              status=status.HTTP_403_FORBIDDEN,
-          )
-    except:
-      return Response(
-        {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
-      )
-    try:
-       comment = Comment.objects.get(id=comment_id)
-    except:
-       return Response(
-          {"detail": "No such comment"}, status=status.HTTP_404_NOT_FOUND
-       )
-
-    if comment.author != author:
-      return Response(
-        {"detail": "No authorization"}, status=status.HTTP_401_UNAUTHORIZED
-      )
-    comment.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
