@@ -3,7 +3,6 @@ from rest_framework import serializers
 
 from account.request_serializers import SignInRequestSerializer
 
-
 class PostListRequestSerializer(serializers.Serializer):
     author = SignInRequestSerializer()
     title = serializers.CharField()

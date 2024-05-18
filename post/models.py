@@ -19,14 +19,13 @@ class Post(models.Model):
     created_at = models.DateTimeField(default=timezone.now) #--날짜를 가져오는 기능. 생성될 때 현재 시간이 변수에 자동으로 저장됨.
 
     author = models.ForeignKey(User, null=True, on_delete=models.CASCADE) #-- One To Many for Users  
-    #--foreign key 를 갖고 있으면 many-to-many라고 생각해도 됨? 
     #-- 한쪽에만 설정하면 됨. Post 에다가 author = ... 을 mapping만 하면 된다. User 에 들어가서 또 설정해줄 필요 x
 
     like_users = models.ManyToManyField(User, blank=True, related_name='like_posts', through='Like') #-- One to Many 구현 for likes
     #-- through 지정?
 
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts') #--one to many for tags
-    #-- 
+    
 
 		## 이건 print하면 어떤 값을 return할 지 알려주는 것!
     def __str__(self):
