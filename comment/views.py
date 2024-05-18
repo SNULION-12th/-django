@@ -53,13 +53,23 @@ class CommentListView(APIView):
     },
 	)
 	def post(self, request):
-		author = request.data.get("author")
+
+		if not request.user.is_authenticated:
+			return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+		author = request.user
+
+		#아래는 인증/인가 처리 전 코드
+		#author = request.data.get("author")
+
 		post = request.data.get("post")
 		content = request.data.get("content")
-		if not author or not post or not content:
+		if not post or not content:
 			return Response({"detail" : "Missing field in request."}, status=status.HTTP_400_BAD_REQUEST)
 		
-		username = author.get("username") #author은 json이므로 그냥 막 필드 꺼내쓸 수 없음-> get 꼭 필요!
+		#아래는 인증/인가 처리 전 코드
+		'''username = author.get("username") #author은 json이므로 그냥 막 필드 꺼내쓸 수 없음-> get 꼭 필요!
 		password = author.get("password")
 		try:
 			author_user = User.objects.get(username = username)
@@ -72,7 +82,7 @@ class CommentListView(APIView):
 			return Response(
 				{"detail" : "author not found."},
 				status=status.HTTP_404_NOT_FOUND,
-			)
+			)'''
 
 		try:
 			post_real = Post.objects.get(id = post)
@@ -82,7 +92,7 @@ class CommentListView(APIView):
 				status = status.HTTP_404_NOT_FOUND,
 			)
 		
-		comment_to_save = Comment.objects.create(post = post_real, author = author_user, content = content)
+		comment_to_save = Comment.objects.create(post = post_real, author = author, content = content) #인증/인가 처리 후 author_user에서 author로 수정
 		#주의!! 객체 생성 혹은 조회시 받아온 request data를 그냥 넣으면 안되고, 무조건 db에서 찾아온 데이터로 넣어야함! 
 		serializer = CommentSerializer(comment_to_save)
 		return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -106,19 +116,29 @@ class CommentDetailView(APIView):
     },
 	)
 	def put(self, request, comment_id):
-		author_data = request.data.get("author")
+
+		if not request.user.is_authenticated:
+			return Response(
+	                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+	            )				
+		author = request.user
+
+		#아래는 인증/인가 전 코드
+		#author_data = request.data.get("author")
+
 		content_data = request.data.get("content")
-		if not author_data or not content_data:
+		if not content_data:
 			return Response({"detail" : "Missing field in request."}, status=status.HTTP_400_BAD_REQUEST)
 		
-		username_data = author_data.get("username")
+		#아래는 인증/인가 전 코드
+		'''username_data = author_data.get("username")
 		password_data = author_data.get("password")
 		try:
 			author = User.objects.get(username = username_data)
 			if not author.check_password(password_data):
 				return Response({"detail" : "Password is incorrect."}, status=status.HTTP_403_FORBIDDEN)
 		except:
-			return Response({"detail" : "Author not found."}, status=status.HTTP_404_NOT_FOUND)
+			return Response({"detail" : "Author not found."}, status=status.HTTP_404_NOT_FOUND)'''
 		
 		try:
 			comment = Comment.objects.get(id=comment_id)
@@ -127,13 +147,21 @@ class CommentDetailView(APIView):
 		except:
 			return Response({"detail" : "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 		
-		comment.author = author
+		#아래는 인증/인가 전 코드
+		'''comment.author = author
 		comment.content = content_data
 		comment.save()
-		serializer = CommentSerializer(comment)
+		serializer = CommentSerializer(comment)'''
+
+		comment.content = content_data
+		serializer = CommentSerializer(comment, data=request.data, partial=True)
+		if not serializer.is_valid():
+			return Response(
+	                {"detail": "data validation error"}, status=status.HTTP_400_BAD_REQUEST
+									)
+		
+		serializer.save()
 		return Response(serializer.data,status=status.HTTP_200_OK)
-
-
 
 
 	@swagger_auto_schema(
@@ -153,7 +181,14 @@ class CommentDetailView(APIView):
     },
 	)
 	def delete(self, request, comment_id):
-		author_data = request.data.get("author")
+
+		if not request.user.is_authenticated:
+			return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
+		#아래는 인증/인가 전 코드
+		'''author_data = request.data.get("author")
 		if not author_data:
 			return Response({"detail" : "Missing field in request."}, status=status.HTTP_404_NOT_FOUND)
 		
@@ -164,7 +199,7 @@ class CommentDetailView(APIView):
 			if not author.check_password(password_data):
 				return Response({"detail" : "Password is incorrect."}, status=status.HTTP_403_FORBIDDEN)
 		except:
-			return Response({"detail" : "User not found."}, status=status.HTTP_404_NOT_FOUND)
+			return Response({"detail" : "User not found."}, status=status.HTTP_404_NOT_FOUND)'''
 		
 		try:
 			comment = Comment.objects.get(id=comment_id)

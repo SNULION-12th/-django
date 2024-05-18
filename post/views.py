@@ -9,6 +9,7 @@ from .request_serializers import PostListRequestSerializer, PostDetailRequestSer
 from account.models import User
 from tag.models import Tag
 from account.request_serializers import SignInRequestSerializer
+from drf_yasg import openapi
 
 # Create your views here.
 class PostListView(APIView):
@@ -31,13 +32,24 @@ class PostListView(APIView):
         operation_id="게시글 생성",
         operation_description="게시글을 생성합니다.",
         request_body=PostListRequestSerializer,
-        responses={201: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={201: PostSerializer, 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def post(self, request): #이 api가 좀 갈아엎어짐 
         title = request.data.get("title") #요청으로부터 제목, 내용, 태그, 작성자 정보 뽑아오기
         content = request.data.get("content")
         tag_contents = request.data.get("tags")
-        author_info = request.data.get("author")
+
+        #인증/인가가 반영된 유저 처리 코드
+
+        author = request.user
+        if not author.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        #아래는 인증/인가 전 코드
+        '''author_info = request.data.get("author")
         if not author_info: #작성자 없다면 빠졌다고 에러 리턴
             return Response(
                 {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
@@ -48,13 +60,17 @@ class PostListView(APIView):
             return Response(
                 {"detail": "[username, password] fields missing in author"},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
+            )'''
+        #위에는 인증/인가 전 코드
+
         if not title or not content: #제목과 내용 중에 하나라도 없다면 에러 리턴
             return Response(
                 {"detail": "[title, content] fields missing."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        try:
+        
+        #아래는 인증/인가 전 코드 -> 인가라는 개념이 없었으므로 할때마다 계속 비번 검증해서 인증 과정을 거쳐야함
+        '''try:
             author = User.objects.get(username=username) #유저 db에서 유저네임(primary key)와 일치하는 유저 객체를 뽑아오기(작성자임)
             if not author.check_password(password): #기존에 저장된 비밀번호와 요청에서 뽑아온 작성자 정보의 비밀번호(현재 로그인한 사람의 비번)이 같지 않으면 에러 리턴
                 return Response(
@@ -65,7 +81,8 @@ class PostListView(APIView):
         except: #해당 유저네임과 일치하는 유저 객체 자체가 없었을 경우에는 에러 리턴
             return Response(
                 {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            )'''
+        #위에는 인증 인가 전 코드
 
         if tag_contents is not None: #요청에 태그가 있을 경우에만 아래 내용 실행
             for tag_content in tag_contents: #태그 내의 각 태그에 대해
@@ -104,8 +121,21 @@ class PostDetailView(APIView):
             return Response(
                 {"detail": "Post Not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
-        author_info = request.data #요청의 데이터는 작성자의 데이터와 같음(SignInRequestSerializer이 요청 처리의 역할을 함)
+        
+        author = request.user
+        if not author.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        if post.author != author:
+            return Response(
+                {"detail": "You are not the author of this post."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        #아래는 인증/인가 처리 전 코드
+        '''author_info = request.data #요청의 데이터는 작성자의 데이터와 같음(SignInRequestSerializer이 요청 처리의 역할을 함)
         if not author_info: #작성자 데이터가 없다면 에러 처리
             return Response(
                 {"detail": "author field missing."},
@@ -133,7 +163,7 @@ class PostDetailView(APIView):
         except: #애초에 유저 db에서 요청 받은 작성자 정보에 해당하는 유저 객체 자체가 없었으면 에러 리턴
             return Response(
                 {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            )'''
 
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -142,7 +172,7 @@ class PostDetailView(APIView):
         operation_id="게시글 수정",
         operation_description="게시글을 수정합니다.",
         request_body=PostDetailRequestSerializer,
-        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
     )
     def put(self, request, post_id): #위의 두 api의 혼합이므로 알아서 이해
         try:
@@ -151,8 +181,21 @@ class PostDetailView(APIView):
             return Response(
                 {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
-        author_info = request.data.get("author")
+        
+        author = request.user
+        if not author.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        if post.author != author:
+            return Response(
+                {"detail": "You are not the author of this post."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        #아래는 인증/인가 처리 전 코드
+        '''author_info = request.data.get("author")
         if not author_info:
             return Response(
                 {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
@@ -174,7 +217,7 @@ class PostDetailView(APIView):
         except:
             return Response(
                 {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            )'''
 
         title = request.data.get("title")
         content = request.data.get("content")
@@ -203,7 +246,7 @@ class LikeView(APIView):
         operation_id="좋아요 토글",
         operation_description="좋아요를 토글합니다. 이미 좋아요가 눌려있으면 취소합니다.",
         request_body=SignInRequestSerializer,
-        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
     )
     def post(self, request, post_id):
 
@@ -214,7 +257,15 @@ class LikeView(APIView):
             return Response(
                 {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
             )
-        author_info = request.data
+        
+        author = request.user
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        #아래는 인증/인가 처리 전 코드
+        '''author_info = request.data
         if not author_info:
             return Response(
                 {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
@@ -238,7 +289,7 @@ class LikeView(APIView):
         except:
             return Response(
                 {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            )'''
 
         ### 3 ### 게시물의 좋아요 중 현재 유저가 남긴 것이 있는지 체크
         is_liked = post.like_set.filter(user=author).count() > 0 #like_set에는 유저들의 queryset 객체가 담겨있음
