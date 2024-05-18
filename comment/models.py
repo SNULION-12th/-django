@@ -5,7 +5,6 @@ from django.utils import timezone
 
 class Comment(models.Model):
     post = models.ForeignKey(Post,blank =False, on_delete=models.CASCADE)
-  
     
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     
