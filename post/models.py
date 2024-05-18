@@ -1,8 +1,8 @@
 from django.db import models
 from django.utils import timezone
-<<<<<<< HEAD
 from django.contrib.auth.models import User
 from tag.models import Tag
+
 # Create your models here.
 ## Post라는 class를 선언해줍니다
 ## (models.Model을 상속받으면 models.Model이 가지는 정보를 모두 가지게되겠죠?)
@@ -31,13 +31,14 @@ class Like(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   post = models.ForeignKey(Post, on_delete=models.CASCADE)
   created_at = models.DateTimeField(default=timezone.now)
-=======
 
 class Post(models.Model):
     title = models.CharField(max_length=256)
     content = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)
+    author = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    like_users = models.ManyToManyField(User,blank=True,related_name='like_posts',through='Like')
+    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
 
     def __str__(self):
         return self.title
->>>>>>> fb50bd764cbec7a56688593b44ce28f451dd53e0
