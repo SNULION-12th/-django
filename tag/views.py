@@ -39,8 +39,8 @@ class TagListView(APIView):
     tag = Tag.objects.create(content=content)
     serializer = TagSerializer(instance = tag)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
- 
- 
+
+
 class TagDetailView(APIView):
   
   @swagger_auto_schema(
