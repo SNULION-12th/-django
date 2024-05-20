@@ -7,6 +7,7 @@ from .models import Post, Like
 from .serializers import PostSerializer
 # Create your views here.
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from account.models import User
 from tag.models import Tag
 from account.request_serializers import SignInRequestSerializer
