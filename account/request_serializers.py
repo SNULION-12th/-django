@@ -11,8 +11,10 @@ class SignUpRequestSerializer(serializers.Serializer):
 
 
 class SignInRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField()
     username = serializers.CharField()
     password = serializers.CharField()
 
 ### 🔺 이 부분 추가 🔺 ###
+
+class TokenRefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
