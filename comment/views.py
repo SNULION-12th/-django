@@ -52,23 +52,11 @@ class CommentListView(APIView): ##get, create
   def post(self, request):
     content = request.data.get("content")
     post = request.data.get("post")
-    author_info = request.data.get("author")
-    if not author_info:
-            return Response(
-                {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
-            )
-    username = author_info.get("username")
-    password = author_info.get("password")
-    if not username or not password:
-      return Response(
-          {"detail": "[username, password] fields missing in author"},
-          status=status.HTTP_400_BAD_REQUEST,
-          )
-    if not content:
-      return Response(
-          {"detail": "content fields missing."},
-          status=status.HTTP_400_BAD_REQUEST,
-      )
+    author = request.user
+    if not request.user.is_authenticated:
+        return Response(
+            {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+        )
     if not post:
       return Response({"detail": "post field missing."}, status=status.HTTP_400_BAD_REQUEST
       )
@@ -110,33 +98,16 @@ class CommentDetailView(APIView):
         {"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND
       )
     
-    author_info = request.data.get("author")
-    if not author_info:
-      return Response(
-        {'detail': "author field missing"}, status=status.HTTP_400_BAD_REQUEST
-      )
-    username = author_info.get("username")
-    password = author_info.get("password")
-    if not username or not password:
-      return Response(
-          {"detail": "[username, password] fields missing in author"},
-          status=status.HTTP_400_BAD_REQUEST,
-          )
-    try:
-        author = User.objects.get(username=username)
-        if not author.check_password(password):
-            return Response(
-                {"detail": "Password is incorrect."},
-                status=status.HTTP_403_BAD_REQUEST,
-            )
-        if comment.author != author:
+    author = request.user
+    if not request.user.is_authenticated:
+        return Response(
+            {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+        )
+        
+    if comment.author != author:
           return Response(
             {'detail': 'No Authorization of comment'}, status=status.HTTP_403_FORBIDDEN
           )
-    except:
-        return Response(
-            {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
-        )
     
     content = request.data.get("content")
     if not content:
@@ -164,33 +135,15 @@ class CommentDetailView(APIView):
         {"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND
       )
     
-    author_info = request.data.get("author")
-    if not author_info:
-      return Response(
-        {'detail': "author field missing"}, status=status.HTTP_400_BAD_REQUEST
-      )
-    username = author_info.get("username")
-    password = author_info.get("password")
-    if not username or not password:
-      return Response(
-          {"detail": "[username, password] fields missing in author"},
-          status=status.HTTP_400_BAD_REQUEST,
-          )
-    try:
-        author = User.objects.get(username=username)
-        if not author.check_password(password):
-            return Response(
-                {"detail": "Password is incorrect."},
-                status=status.HTTP_403_BAD_REQUEST,
-            )
-        if comment.author != author:
-          return Response(
-            {'detail': 'No Authorization of comment'}, status=status.HTTP_403_FORBIDDEN
-          )
-    except:
+    author = request.user
+    if not request.user.is_authenticated:
         return Response(
-            {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
+            {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
         )
+    if comment.author != author:
+      return Response(
+        {'detail': 'No Authorization of comment'}, status=status.HTTP_403_FORBIDDEN
+      )
     
     content = request.data.get("content")
     if not content:
