@@ -85,7 +85,7 @@ class CommentView(APIView):
         {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
       )
     
-    comment = Comment.objects.create(post=post, content=content, author=author)
+    comment = Comment.objects.create(post=post.id, content=content, author=author.id)
     serializer = CommentSerializer(comment)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
   
@@ -130,15 +130,13 @@ class CommentDetailView(APIView):
         {"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND
       )
     
-    content = request.data.get('content')
-    if not content:
+    serializer = CommentSerializer(comment, data=request.data, partial=True)
+    if not serializer.is_valid():
       return Response(
-        {"detail": "content field missing."}, status=status.HTTP_400_BAD_REQUEST
+        {"detail": "Bad Request."}, status=status.HTTP_400_BAD_REQUEST
       )
-    
-    comment.content = content
-    comment.save()
-    serializer = CommentSerializer(comment)
+    serializer.save()
+
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   @swagger_auto_schema(
@@ -174,7 +172,7 @@ class CommentDetailView(APIView):
         )
       if author != comment.author:
         return Response(
-          {"detail": "Unauthorized."}, status=status.HTTP_401_UNAUTHORIZED
+          {"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN
         )
     except:
       return Response(
