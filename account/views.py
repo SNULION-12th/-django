@@ -15,7 +15,8 @@ from drf_yasg import openapi
 from account.request_serializers import (
     SignInRequestSerializer,
     SignUpRequestSerializer,
-    TokenRefreshRequestSerializer
+    TokenRefreshRequestSerializer,
+    SignOutRequestSerializer
 )
 
 def generate_token_in_serialized_data(user, user_profile):
@@ -119,3 +120,31 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+    
+    
+class LogOutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="주어진 Refresh Token을 Blacklist에 등록하고 로그아웃합니다.",
+        request_body=SignOutRequestSerializer,
+        responses={204: "No Contents", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
+    )
+    def post(self, request):
+
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        waste_token = request.data.get("blackListToken")
+        temp = RefreshToken(waste_token)
+        try:
+            temp.verify()
+        except:
+            return Response(
+                {"detail": "No Valid Refresh Token."}, status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        temp.blacklist()
+        return Response(status=status.HTTP_204_NO_CONTENT)

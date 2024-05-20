@@ -113,13 +113,13 @@ class PostDetailView(APIView):
             return Response(
                 {"detail": "Post Not found."}, status=status.HTTP_404_NOT_FOUND
             )
-    ### 🔻 이 부분 수정 🔻 ###
+    
         author = request.user
         if not author.is_authenticated:
             return Response(
                 {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-		### 🔺 이 부분 수정 🔺 ###
+		
         if post.author != author:
             return Response(
                 {"detail": "You are not the author of this post."},
