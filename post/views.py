@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from .models import Post, Like
 from .serializers import PostSerializer
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .request_serializers import PostListRequestSerializer, PostDetailRequestSerializer
 
@@ -50,22 +51,16 @@ class PostListView(APIView):
         operation_description="게시글을 생성합니다.",
         request_body=PostListRequestSerializer,
         responses={201: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+         manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def post(self, request):
         title = request.data.get("title")
         content = request.data.get("content")
         tag_contents = request.data.get("tags")
-        author_info = request.data.get("author")
-        if not author_info:
+        author = request.user
+        if not author.is_authenticated:
             return Response(
-                {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
-            )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        if not username or not password:
-            return Response(
-                {"detail": "[username, password] fields missing in author"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
         if not title or not content:
             return Response(
@@ -73,12 +68,7 @@ class PostListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is incorrect."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+           
             post = Post.objects.create(title=title, content=content, author=author)
         except:
             return Response(
@@ -116,7 +106,8 @@ class PostDetailView(APIView):
         operation_id="게시글 삭제",
         operation_description="게시글을 삭제합니다.",
         request_body=SignInRequestSerializer,
-        responses={204: "No Content", 404: "Not Found", 400: "Bad Request"},
+        responses={204: "No Content", 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter('Authorization', openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def delete(self, request, post_id):
         try:
@@ -125,35 +116,17 @@ class PostDetailView(APIView):
             return Response(
                 {"detail": "Post Not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
-        author_info = request.data
-        if not author_info:
+    ### 🔻 이 부분 수정 🔻 ###
+        author = request.user
+        if not author.is_authenticated:
             return Response(
-                {"detail": "author field missing."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        if not username or not password:
+		### 🔺 이 부분 수정 🔺 ###
+        if post.author != author:
             return Response(
-                {"detail": "[username, password] fields missing."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is incorrect."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            if post.author != author:
-                return Response(
-                    {"detail": "You are not the author of this post."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-        except:
-            return Response(
-                {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "You are not the author of this post."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         post.delete()
@@ -163,7 +136,8 @@ class PostDetailView(APIView):
         operation_id="게시글 수정",
         operation_description="게시글을 수정합니다.",
         request_body=PostDetailRequestSerializer,
-        responses={200: PostSerializer, 404: "Not Found", 400: "Bad Request"},
+        responses={204: "No Content", 404: "Not Found", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter('Authorization', openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def put(self, request, post_id):
         try:
@@ -172,29 +146,17 @@ class PostDetailView(APIView):
             return Response(
                 {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
-        author_info = request.data.get("author")
-        if not author_info:
+    ### 🔻 이 부분 수정 🔻 ###
+        author = request.user
+        if not author.is_authenticated:
             return Response(
-                {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is incorrect."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            if post.author != author:
-                return Response(
-                    {"detail": "You are not the author of this post."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-        except:
+		### 🔺 이 부분 수정 🔺 ###
+        if post.author != author:
             return Response(
-                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "You are not the author of this post."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         title = request.data.get("title")
@@ -237,29 +199,10 @@ class LikeView(APIView):
             return Response(
                 {"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND
             )
-        author_info = request.data
-        if not author_info:
+        author = request.user
+        if not request.user.is_authenticated:
             return Response(
-                {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
-            )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        if not username or not password:
-            return Response(
-                {"detail": "[username, password] fields missing."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        ### 2 ###
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is incorrect."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except:
-            return Response(
-                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         ### 3 ###

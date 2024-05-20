@@ -60,36 +60,20 @@ class CommentListView(APIView):
         },
     )
     def post(self, request):
-        author_info = request.data.get("author")
-        if not author_info:
+        ### 🔻 이 부분 수정 🔻 ###
+        if not request.user.is_authenticated:
             return Response(
-                {"detail": "missing fields ['author']"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        username = author_info.get("username")
-        password = author_info.get("password")
+        author = request.user
+        ### 🔺 이 부분 수정 🔺 ###
         post_id = request.data.get("post")
         content = request.data.get("content")
-        if not username or not password:
-            return Response(
-                {"detail": "missing fields ['username', 'password']"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+
         if not post_id or not content:
             return Response(
                 {"detail": "missing fields ['post', 'content']"},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is wrong!"}, status=status.HTTP_403_FORBIDDEN
-                )
-        except User.DoesNotExist:
-            return Response(
-                {"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
         if not Post.objects.filter(id=post_id).exists():
@@ -102,7 +86,6 @@ class CommentListView(APIView):
         )
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 class CommentDetailView(APIView):
     @swagger_auto_schema(
@@ -117,32 +100,12 @@ class CommentDetailView(APIView):
         },
     )
     def put(self, request, comment_id):
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        author = request.user
         content = request.data.get("content")
-        author_info = request.data.get("author")
-        if not author_info or not content:
-            return Response(
-                {"detail": "missing fields ['author', 'content']"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        if not username or not password:
-            return Response(
-                {"detail": "missing fields ['username', 'password']"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is wrong!"}, status=status.HTTP_403_FORBIDDEN
-                )
-        except User.DoesNotExist:
-            return Response(
-                {"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
         try:
             comment = Comment.objects.get(id=comment_id)
         except:
@@ -178,31 +141,11 @@ class CommentDetailView(APIView):
     )
     def delete(self, request, comment_id):
 
-        author_info = request.data.get("author")
-        if not author_info:
+        if not request.user.is_authenticated:
             return Response(
-                {"detail": "missing fields ['author']"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        if not username or not password:
-            return Response(
-                {"detail": "missing fields ['username', 'password']"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is wrong!"}, status=status.HTTP_403_FORBIDDEN
-                )
-        except User.DoesNotExist:
-            return Response(
-                {"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
+        author = request.user
         try:
             comment = Comment.objects.get(id=comment_id)
         except:
@@ -216,3 +159,4 @@ class CommentDetailView(APIView):
 
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
