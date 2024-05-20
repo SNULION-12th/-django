@@ -15,6 +15,7 @@ from account.request_serializers import (
     SignInRequestSerializer,
     SignUpRequestSerializer,
     TokenRefreshRequestSerializer,
+    LogoutRequestSerializer,
 )
 
 def set_token_on_response_cookie(user, status_code):
@@ -87,7 +88,7 @@ class TokenRefreshView(APIView):
         operation_id="토큰 재발급",
         operation_description="access 토큰을 재발급 받습니다.",
         request_body=TokenRefreshRequestSerializer, 
-        responses={200: UserProfileSerializer},
+        responses={200: UserProfileSerializer, 401: "Unauthorized"},
     )
     def post(self, request):
         refresh_token = request.data.get("refresh")
@@ -111,3 +112,40 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+    
+class LogoutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그 아웃",
+        operation_description="사용자를 로그아웃 시킵니다.",
+        request_body=LogoutRequestSerializer, 
+        responses={
+            204: "No Content",
+            400: "Bad Request",
+            401: "Unauthorized",
+        },
+    )
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        
+        #### 1
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        author = request.user
+        if not author.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        try:
+            RefreshToken(refresh_token).verify()
+        except:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        RefreshToken(refresh_token).blacklist()
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
