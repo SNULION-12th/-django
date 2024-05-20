@@ -118,6 +118,7 @@ class SignOutView(APIView):
         operation_description="로그아웃을 진행합니다.",
         request_body=SignOutRequestSerializer,
         responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)],
     )
     def post(self, request):
         refresh_token = request.data.get("refresh")
@@ -126,6 +127,10 @@ class SignOutView(APIView):
                 {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
             )
         
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please sign in"}, status=status.HTTP_401_UNAUTHORIZED
+            )
         try:
             RefreshToken(refresh_token).verify()
         except:
