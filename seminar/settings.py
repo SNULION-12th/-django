@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'account',
     'tag',
     'rest_framework_simplejwt',
+    'comment',
 ]
 
 MIDDLEWARE = [
