@@ -1,6 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 from .models import Post
 from tag.serializers import TagSerializer
+from account.serializers import UserSerializer
 
 class PostSerializer(ModelSerializer):
   tags = TagSerializer(many=True, read_only=True)

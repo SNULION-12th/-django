@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'account.apps.AccountConfig',
     'tag.apps.TagConfig',
+    'comment.apps.CommentConfig',
 ]
 
 MIDDLEWARE = [
