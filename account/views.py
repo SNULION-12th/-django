@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -89,6 +90,41 @@ class SignInView(APIView):
             return Response(
                 {"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND
             )
+
+class SignOutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="로그아웃을 진행합니다.",
+        request_body=TokenRefreshRequestSerializer,
+        responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter('Authorization', openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
+    )
+    def delete(self, request):
+        user = request.user
+        
+        if not user.is_authenticated:
+            return Response({
+                "detail": "please sign in"
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        refresh = request.data.get("refresh")
+        if not refresh:
+            return Response({
+                "detail": "no refresh token"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        refresh_token = RefreshToken(refresh)
+
+        try:
+            refresh_token.check_blacklist()
+        except (TokenError, InvalidToken):
+            return Response({"detail": "User is already signed out"}, status=status.HTTP_404_NOT_FOUND)
+        refresh_token.blacklist()
+        res = Response(status=status.HTTP_204_NO_CONTENT)
+        res.delete_cookie("access_token")
+        res.delete_cookie("refresh_token")
+        return res
+
 
 class TokenRefreshView(APIView):
     @swagger_auto_schema(
