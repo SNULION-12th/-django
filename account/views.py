@@ -5,16 +5,15 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from .models import UserProfile
 from .serializers import UserSerializer,UserProfileSerializer
-from .request_serializers import TokenRefreshRequestSerializer
+from .request_serializers import TokenRefreshRequestSerializer, LogoutRequestSerializers
 
 # APIView, JWT token, 비밀번호 해싱을 위해 필요한 class import
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 from account.request_serializers import (
     SignInRequestSerializer,
@@ -121,3 +120,27 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+    
+class LogoutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="사용자를 로그아웃 시킵니다.",
+        request_body=LogoutRequestSerializers,
+        responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
+    )
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except (TokenError, InvalidToken):
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
