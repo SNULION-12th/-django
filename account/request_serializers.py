@@ -13,3 +13,10 @@ class SignInRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     username = serializers.CharField()
     password = serializers.CharField()
+
+class TokenRefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
+class SignOutSerializer(serializers.Serializer):
+    refreshToken = serializers.CharField()
