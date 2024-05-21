@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'account',
     'tag',
     'comment',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
