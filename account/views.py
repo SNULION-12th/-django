@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer, TokenRefreshRequestSerializer
+from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer, TokenRefreshRequestSerializer, SignOutReqeustSerializer
 
 from .serializers import ( #필요한 serializer들을 받아오기 
     UserSerializer,
@@ -59,7 +59,7 @@ class SignUpView(APIView):
         #serialized_data = generate_token_in_serialized_data(user, user_profile) #쿠키로 담아 보내기 전
         #return Response(serialized_data, status=status.HTTP_201_CREATED) #쿠키로 담아보내기 전
 
-        return set_token_on_response_cookie(user, status_code = status.HTTP_201_CREATED)
+        return set_token_on_response_cookie(user, status_code = status.HTTP_201_CREATED) #아예 응답 객체 자체를 만들어서 return 
 
         #user_profile_serializer = UserProfileSerializer(instance=user_profile) #만들은 유저프로필 객체를 직렬화
         #return Response(user_profile_serializer.data, status=status.HTTP_201_CREATED) #직렬화한 유저프로필 객체의 데이터만 빼내서 응답
@@ -132,3 +132,40 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+
+class SignOutView(APIView):
+    @swagger_auto_schema(
+            operation_id="로그아웃",
+            operation_description="사용자를 로그아웃 시킵니다.",
+            request_body=SignOutReqeustSerializer,
+            responses={401: "Unauthorized", 400: "Bad request", 204: "No content"},
+    )
+    def post(self, request):
+        #refresh token을 블랙리스트에 추가하면 로그아웃이 됨
+        #프론트에서는 별개로 저장된 토큰 쿠키들을 삭제해줘야함
+
+        refresh_token=request.data.get("refresh")
+
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        author = request.user #현재 로그인 되어있는지 확인해야 로그아웃을 시킬 수 있으므로 로그인 여부 검증
+        if not author.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        try: #이미 토큰이 만료되지는 않았는지 검증
+            RefreshToken(refresh_token).verify()
+        except:
+            return Response(
+                {"detail": "please signin again."}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        RefreshToken(refresh_token).blacklist()
+        response=Response(status=status.HTTP_204_NO_CONTENT)
+        return response
+        
+

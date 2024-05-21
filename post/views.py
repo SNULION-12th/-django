@@ -122,7 +122,7 @@ class PostDetailView(APIView):
                 {"detail": "Post Not found."}, status=status.HTTP_404_NOT_FOUND
             )
         
-        author = request.user
+        author = request.user #이건 request.data.user와 다른거임! 이건 requestbody로 유저 정보를 안보줘도, 요청을 보낸 사람 자체를 식별해서 유저 정보를 찾아냄 
         if not author.is_authenticated:
             return Response(
                 {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
