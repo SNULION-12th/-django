@@ -11,5 +11,3 @@ class CommentDetailRequestSerializer(serializers.Serializer):
     author = SignInRequestSerializer()
     content=serializers.CharField()
     
-class TokenRefreshRequestSerializer(serializers.Serializer):
-    refresh = serializers.CharField()
