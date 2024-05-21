@@ -147,6 +147,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework_simplejwt',
+    "rest_framework_simplejwt.token_blacklist",
     'post',  #추가, 늘여서 'post.apps.PostConfig'라고 적어도 된다는 비밀 아닌 비밀
     'drf_yasg',
     'account',

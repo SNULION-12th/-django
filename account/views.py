@@ -6,7 +6,9 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
-from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer, TokenRefreshRequestSerializer
+from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer, TokenRefreshRequestSerializer, SignOutRequestSerializer
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 
 from .serializers import (
     UserSerializer,
@@ -97,11 +99,30 @@ class SignOutView(APIView):
     @swagger_auto_schema(
         operation_id="로그아웃",
         operation_description="로그아웃을 진행합니다.",
+        request_body=SignOutRequestSerializer,
         responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
-        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="refresh token", type=openapi.TYPE_STRING)],
+        manual_parameters=[openapi.Parameter('Authorization', openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)],
     )
     def post(self, request):
-        pass
+        rToken = request.data.get("refresh")
+        if not rToken:
+            return Response({"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        author = request.user
+        if not author.is_authenticated:
+            return Response(
+                {"detail": "please sign in first"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+                
+        try:
+            refresh_token = RefreshToken(rToken)
+            refresh_token.check_blacklist()
+            refresh_token.blacklist()
+        except TokenError:
+            return Response(
+                {"detail": "token is invalid, expired, already in the blacklist or unknown"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response({"detail": "successfully signed out"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class TokenRefreshView(APIView):
