@@ -6,13 +6,14 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer, TokenRefreshRequestSerializer
+from account.request_serializers import SignInRequestSerializer, SignUpRequestSerializer, TokenRefreshRequestSerializer, SignOutRequestSerializer
 
 from .serializers import (
     UserSerializer,
     UserProfileSerializer,
 )
 from .models import UserProfile
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # APIView, JWT token, 비밀번호 해싱을 위해 필요한 class import
 from rest_framework import status
@@ -130,3 +131,36 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+    
+class SignOutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="로그아웃을 진행합니다.",
+        responses={204: "No Content", 401:"Unauthorized", 400:"Bad Request"},
+        request_body=SignOutRequestSerializer,
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
+    )
+    def post(self, request):
+        #check if user is signed in
+        author = request.user
+        if not author.is_authenticated: #-인증이 되어있는 상태인지 체크
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        #check if refresh_token exists
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            RefreshToken(refresh_token).verify()
+        except:
+            Response({"detail": "not verified"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    

@@ -14,3 +14,6 @@ class SignInRequestSerializer(serializers.Serializer): #로그인할 때 받아�
 
 class TokenRefreshRequestSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+class SignOutRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
