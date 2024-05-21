@@ -8,6 +8,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.permissions import IsAuthenticated
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -15,7 +17,8 @@ from drf_yasg import openapi
 from account.request_serializers import (
     SignInRequestSerializer,
     SignUpRequestSerializer,
-    TokenRefreshRequestSerializer
+    TokenRefreshRequestSerializer,
+    LogOutRequestSerializer
 )
 
 ### 🔻 이 부분만 추가 ####
@@ -120,3 +123,37 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+    
+# 로그아웃 view 구현
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="사용자를 로그아웃 시킵니다.",
+        request_body=LogOutRequestSerializer,
+        responses={
+            204: "No Content",
+            400: "Bad Request",
+            401: "Unauthorized"
+        },
+    )
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            token = RefreshToken(refresh_token)
+            # 블랙리스트에 추가하여 더 이상 사용되지 않도록 함
+            token.blacklist()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except TokenError:
+            return Response(
+                {"detail": "please signin again."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'tag',
     'comment',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -142,7 +143,9 @@ REST_FRAMEWORK = {
     ),
      'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 from datetime import timedelta
@@ -158,6 +161,7 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken', ),
     'ACCESS_TOKEN': 'access_token',
     'REFRESH_TOKEN': 'refresh_token',
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 SWAGGER_SETTINGS = {
