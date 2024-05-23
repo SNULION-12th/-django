@@ -37,36 +37,18 @@ class PostListView(APIView):
         title = request.data.get("title")
         content = request.data.get("content")
         tag_contents = request.data.get("tags")
-        author_info = request.data.get("author")
-        if not author_info:
+        author = request.user
+        if not author.is_authenticated:
             return Response(
-                {"detail": "author field missing."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        username = author_info.get("username")
-        password = author_info.get("password")
-        if not username or not password:
-            return Response(
-                {"detail": "[username, password] fields missing in author"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+
         if not title or not content:
             return Response(
                 {"detail": "[title, content] fields missing."},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-        try:
-            author = User.objects.get(username=username)
-            if not author.check_password(password):
-                return Response(
-                    {"detail": "Password is incorrect."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            post = Post.objects.create(title=title, content=content, author=author)
-        except:
-            return Response(
-                {"detail": "User Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
+            )	
+        post = Post.objects.create(title=title, content=content, author=author)
         if tag_contents is not None:
             for tag_content in tag_contents:
                 if not Tag.objects.filter(content=tag_content).exists():
