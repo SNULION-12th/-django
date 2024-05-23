@@ -47,6 +47,7 @@ class SignInView(APIView):
         request_body=SignInRequestSerializer,
         responses={200: UserSerializer, 404: "Not Found", 400: "Bad Request"},
     )
+    
     def post(self, request):
         # query_params 에서 username, password를 가져온다.
         username = request.data.get("username")
