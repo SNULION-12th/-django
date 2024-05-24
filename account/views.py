@@ -108,3 +108,24 @@ class TokenRefreshView(APIView):
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
 
+class SignOutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="로그아웃을 진행합니다.",
+        responses={204: "No Content"},
+    )
+    def post(self, request):
+
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        RefreshToken(refresh_token).blacklist()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
