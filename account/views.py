@@ -5,19 +5,20 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from .models import UserProfile
 from .serializers import UserSerializer,UserProfileSerializer
-from .request_serializers import TokenRefreshRequestSerializer, LogoutRequestSerializers
 
 # APIView, JWT token, 비밀번호 해싱을 위해 필요한 class import
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from account.request_serializers import (
     SignInRequestSerializer,
     SignUpRequestSerializer,
+    TokenRefreshRequestSerializer, 
+    LogoutRequestSerializers,
 )
 
 def generate_token_in_serialized_data(user, user_profile):
@@ -127,6 +128,7 @@ class LogoutView(APIView):
         operation_description="사용자를 로그아웃 시킵니다.",
         request_body=LogoutRequestSerializers,
         responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)]
     )
     def post(self, request):
         refresh_token = request.data.get("refresh")
@@ -135,12 +137,16 @@ class LogoutView(APIView):
                 {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
             )
         
-        try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-        except (TokenError, InvalidToken):
+        if not request.user.is_authenticated:
             return Response(
                 {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
             )
-        
+        try:
+            RefreshToken(refresh_token).verify()
+        except:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        RefreshToken(refresh_token).blacklist()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
