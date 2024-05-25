@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -14,6 +15,8 @@ from drf_yasg import openapi
 from account.request_serializers import (
     SignInRequestSerializer,
     SignUpRequestSerializer,
+    TokenRefreshRequestSerializer,
+    LogoutRequestSerializer,
 )
 
 def generate_token_in_serialized_data(user, user_profile):
@@ -84,3 +87,56 @@ class SignInView(APIView):
             return Response(
                 {"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND
             )
+class LogoutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="로그아웃을 진행합니다.",
+        request_body=LogoutRequestSerializer,
+        responses={204: "No Content", 401: "Unauthorized", 400: "Bad Request"},
+    )
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST,
+            ) 
+        try:
+            RefreshToken(refresh_token).verify()
+        except:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        RefreshToken(refresh_token).blacklist()
+        response=Response(status=status.HTTP_204_NO_CONTENT)
+        return response
+        
+class TokenRefreshView(APIView):
+    @swagger_auto_schema(
+        operation_id="토큰 재발급",
+        operation_description="access 토큰을 재발급 받습니다.",
+        request_body=TokenRefreshRequestSerializer,
+        responses={200: UserProfileSerializer},
+    )
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        
+        #### 1
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+        #### 2
+            RefreshToken(refresh_token).verify()
+        except:
+            return Response(
+                {"detail": "please signin again."}, status=status.HTTP_401_UNAUTHORIZED
+            )
+            
+        #### 3
+        new_access_token = str(RefreshToken(refresh_token).access_token)
+        response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
+        response.set_cookie("access_token", value=str(new_access_token), httponly=True)
+        return response
+    
