@@ -107,7 +107,7 @@ class TokenRefreshView(APIView):
 class LogoutView(APIView):
     @swagger_auto_schema(
         operation_id="로그아웃",
-        operation_description="refresh token을 삭제합니다.",
+        operation_description="사용자를 로그아웃시킵니다.",
         request_body=LogoutRequestSerializer,
         responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
     manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)])
