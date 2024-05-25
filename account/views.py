@@ -110,7 +110,7 @@ class LogoutView(APIView):
         operation_description="refresh token을 삭제합니다.",
         request_body=LogoutRequestSerializer,
         responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
-    )
+    manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)])
     def post(self, request):
         refresh_token = request.data.get("refresh")
 
