@@ -113,7 +113,10 @@ class LogoutView(APIView):
     manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)])
     def post(self, request):
         refresh_token = request.data.get("refresh")
-
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
         if not refresh_token:
             return Response(
                 {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
