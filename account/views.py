@@ -16,6 +16,7 @@ from account.request_serializers import (
     SignInRequestSerializer,
     SignUpRequestSerializer,
     TokenRefreshRequestSerializer,
+    SignOutRequestSerializer,
 )
 
 def set_token_on_response_cookie(user, status_code):
@@ -86,7 +87,7 @@ class TokenRefreshView(APIView):
         operation_id="토큰 재발급",
         operation_description="access 토큰을 재발급 받습니다.",
         request_body=TokenRefreshRequestSerializer,
-        responses={200: UserProfileSerializer},
+        responses={200: UserProfileSerializer, 400: "Bad Request", 401: "Unauthorized"},
     )
     def post(self, request):
         refresh_token = request.data.get("refresh")
@@ -110,3 +111,33 @@ class TokenRefreshView(APIView):
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
         response.set_cookie("access_token", value=str(new_access_token), httponly=True)
         return response
+    
+class SignOutView(APIView):
+    @swagger_auto_schema(
+        operation_id="로그아웃",
+        operation_description="로그아웃을 진행합니다.",
+        request_body=SignOutRequestSerializer,
+        responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized"},
+        manual_parameters=[openapi.Parameter("Authorization", openapi.IN_HEADER, description="access token", type=openapi.TYPE_STRING)],
+    )
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"detail": "no refresh token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "please sign in"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            RefreshToken(refresh_token).verify()
+        except:
+            return Response(
+                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        RefreshToken(refresh_token).blacklist()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
