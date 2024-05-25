@@ -31,8 +31,8 @@ def set_token_on_response_cookie(user, status_code) -> Response:
     user_profile = UserProfile.objects.get(user=user)
     serialized_data = UserProfileSerializer(user_profile).data
     res = Response(serialized_data, status=status_code)
-    res.set_cookie("refresh_token", value=str(token), httponly=True)
-    res.set_cookie("access_token", value=str(token.access_token), httponly=True)
+    res.set_cookie("refresh_token", value=str(token))
+    res.set_cookie("access_token", value=str(token.access_token))
     return res
 
 
@@ -45,12 +45,12 @@ class SignUpView(APIView):
     )
     def post(self, request):
 
+
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid(raise_exception=True):
             user = user_serializer.save()
             user.set_password(user.password)
             user.save()
-
         college = request.data.get("college")
         major = request.data.get("major")
 
@@ -105,7 +105,7 @@ class TokenRefreshView(APIView):
             )
         new_access_token = str(RefreshToken(refresh_token).access_token)
         response = Response({"detail": "token refreshed"}, status=status.HTTP_200_OK)
-        response.set_cookie("access_token", value=str(new_access_token), httponly=True)
+        response.set_cookie("access_token", value=str(new_access_token))
         return response
 
 
