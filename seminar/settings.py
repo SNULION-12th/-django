@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "account",
     "tag",
     "comment",
+    'rest_framework', ## 추가 
+    'rest_framework_simplejwt', ## 추가
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
 ]
@@ -158,9 +160,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
+
 REST_USE_JWT = True
 
 SIMPLE_JWT = {
