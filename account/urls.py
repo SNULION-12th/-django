@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignOutView, SignUpView, SignInView, TokenRefreshView
+from .views import SignOutView, SignUpView, SignInView, TokenRefreshView, UserInfoView
 
 
 app_name = "account"

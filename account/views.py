@@ -21,7 +21,7 @@ from .serializers import UserSerializer, UserProfileSerializer, UserIdUsernameSe
 
 def generate_token_in_serialized_data(user, user_profile):
     token = RefreshToken.for_user(user)
-    refresh_token, access_token = str(token), str(token.access_token)
+    refresh_token, access_token = str(token.refresh_token), str(token.access_token)
     serialized_data = UserProfileSerializer(user_profile).data
     serialized_data["token"] = {"access": access_token, "refresh": refresh_token}
     return serialized_data
