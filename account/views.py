@@ -11,10 +11,7 @@ from account.request_serializers import (
     TokenRefreshRequestSerializer,
 )
 
-from .serializers import (
-    UserSerializer,
-    UserProfileSerializer,
-)
+from .serializers import UserSerializer, UserProfileSerializer, UserIdUsernameSerializer
 from .models import UserProfile
 
 
@@ -130,3 +127,19 @@ class SignOutView(APIView):
         RefreshToken(refresh_token).blacklist()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class UserInfoView(APIView):
+    @swagger_auto_schema(
+        operation_id="사용자 정보 조회",
+        operation_description="현재 로그인한 사용자의 정보를 조회합니다.",
+        responses={
+            200: UserIdUsernameSerializer,
+            401: 'Unauthorized'
+        }
+    )
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "로그인 후 다시 시도해주세요."}, status=status.HTTP_401_UNAUTHORIZED)
+        user = request.user
+        serializer = UserIdUsernameSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
