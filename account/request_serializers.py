@@ -18,3 +18,6 @@ class SignInRequestSerializer(serializers.Serializer):
 
 class TokenRefreshRequestSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+class LogOutRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
