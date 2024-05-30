@@ -187,7 +187,7 @@ class LikeView(APIView):
     def post(self, request, post_id):
         if not request.user.is_authenticated:
             return Response(
-                {"detail": "please signin"}, status=status.HTTP_401_UNAUTHORIZED
+                {"detail": "Authentication credentials not provided"}, status=status.HTTP_401_UNAUTHORIZED
             )
         try:
             post = Post.objects.get(id=post_id)
