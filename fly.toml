@@ -1,0 +1,30 @@
+# fly.toml app configuration file generated for django-seminar-sangun on 2024-06-18T19:19:26+09:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'django-seminar-sangun'
+primary_region = 'nrt'
+console_command = '/code/manage.py shell'
+
+[build]
+
+[env]
+  PORT = '8000'
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[statics]]
+  guest_path = '/code/staticfiles'
+  url_prefix = '/static/'

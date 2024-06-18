@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 import os, environ
 
-env = environ.Env(DEBUG=(bool, True))
+env = environ.Env(DEBUG=(bool, False))
 
 environ.Env.read_env(env_file=os.path.join(BASE_DIR, ".env"))
 
@@ -29,9 +29,10 @@ environ.Env.read_env(env_file=os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+APP_NAME = os.environ.get("FLY_APP_NAME")
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", f"{APP_NAME}.fly.dev"]
 
 
 # Application definition
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    'whitenoise.runserver_nostatic',
     "django.contrib.staticfiles",
     "drf_yasg",
     "post",
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -190,3 +193,13 @@ SWAGGER_SETTINGS = {
         'BearerAuth': []
     }]
 }
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' 
+
+CSRF_TRUSTED_ORIGINS = [
+   'http://127.0.0.1:3000', 
+   'http://localhost:3000',
+   f'https://{APP_NAME}.fly.dev',
+]
